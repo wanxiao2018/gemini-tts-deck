@@ -61,7 +61,7 @@ cp .env.example .env
 ## 💡 Roadmap & Welcome Contributions
 
 - [ ] Multi-speaker dialogue script layout & visualization
-- [ ] Docker & Docker-Compose deployment recipes
+- [x] Docker & Docker-Compose deployment recipes
 - [ ] Extended emotion tags and custom style presets
 - [ ] Multilingual web UI (i18n)
 

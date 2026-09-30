@@ -1,0 +1,16 @@
+.git/
+.venv/
+__pycache__/
+*.py[cod]
+.Python
+.env
+.env.*
+output/*.wav
+output/*.mp3
+output/history.json
+!output/.gitkeep
+docs/*.mp4
+docs/*.png
+.DS_Store
+.idea/
+.vscode/

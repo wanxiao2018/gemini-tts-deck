@@ -146,6 +146,17 @@ uv run python run.py
 > 服务启动后会自动唤起浏览器打开 `http://127.0.0.1:8000`。
 > 快捷键提示：输入文本后，随时按下 **`⌘ + Enter`**（Mac）或 **`Ctrl + Enter`**（Windows）即可极速触发生成！非输入状态按 **`Space`** 即可暂停/播放。
 
+### 5. Docker 容器化部署（适合 NAS / 云服务器自建）
+镜像已内置 `ffmpeg` 编解码器与所有运行依赖，彻底摆脱环境配置困扰：
+```bash
+# 后台启动容器
+docker compose up -d
+
+# 查看运行日志
+docker compose logs -f
+```
+启动后访问 `http://localhost:8000` 即可开始录音创作，生成的音频 Takes 会自动持久化保存在宿主机的 `./output` 目录中。
+
 ---
 
 ## 💻 命令行 CLI 使用
@@ -183,6 +194,8 @@ gemini_tts_app/
 ├── README.md            # 英文主页文档 (GitHub 默认加载)
 ├── README_zh.md         # 中文完整版说明文档
 ├── pyproject.toml       # Python 项目标准配置文件
+├── Dockerfile           # 内置预装 FFmpeg 的轻量容器镜像定义
+├── docker-compose.yml   # 宿主机端口与持久化音频目录一键挂载编排
 ├── core.py              # 核心合成逻辑、.env 加载器、FFmpeg 转码与历史持久化
 ├── app.py               # FastAPI 网页后端服务与静态路由
 ├── cli.py               # 命令行独立调用工具 (全平台发声支持)
