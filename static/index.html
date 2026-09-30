@@ -689,21 +689,39 @@
     }
 
     // ---------- 声音 / 模型 ----------
+    const VOICE_I18N = {
+      Puck: { gender: 'Male', tag: 'Lively & Relatable', desc: 'Crisp and lively with expressive clarity. Great for commentary, vlogs, and daily dialogue.' },
+      Aoede: { gender: 'Female', tag: 'Warm & Elegant', desc: 'Warm, elegant, and resonant. Perfect for prose, lyrical monologues, and storytelling.' },
+      Charon: { gender: 'Male', tag: 'Deep & Magnetic', desc: 'Deep, magnetic, cinematic voice. Ideal for epic narratives, suspense, and documentaries.' },
+      Kore: { gender: 'Female', tag: 'Gentle & Soothing', desc: 'Soft, relaxing, and therapeutic. Excellent for meditation guidance and bedtime reading.' },
+      Fenrir: { gender: 'Male', tag: 'Authoritative', desc: 'Authoritative, decisive, and commanding. Ideal for formal news, briefings, and presentations.' },
+      Veda: { gender: 'Female', tag: 'Intellectual', desc: 'Clear, articulate, and intellectual. Perfect for lectures, explainers, and audio courses.' },
+      Zephyr: { gender: 'Male', tag: 'Bright & Sunny', desc: 'Upbeat, youthful, and energetic. Tailored for gaming, animation, and short video clips.' },
+      Leda: { gender: 'Female', tag: 'Graceful', desc: 'Composed, graceful, with measured pacing. Built for literary novels and biographies.' }
+    };
+
+    const MODEL_I18N = {
+      'gemini-3.8-flash-tts': { desc: 'Peak acoustic fidelity & subtle acting. Supports micro-expression tags and style prompts.' },
+      'gemini-3.8-flash-lite-tts': { desc: 'Instant response with high throughput. Perfect for snappy short-form speech.' }
+    };
+
     function renderVoices() {
       const list = $('voiceList');
       const isZh = state.lang === 'zh';
       const voices = state.voices.filter(v => {
         if (state.filter === 'all') return true;
-        const isMale = v.gender === '男声' || v.gender_en === 'Male';
+        const fallback = VOICE_I18N[v.id] || {};
+        const isMale = v.gender === '男声' || v.gender_en === 'Male' || fallback.gender === 'Male';
         if (state.filter === 'male' || state.filter === '男声') return isMale;
         if (state.filter === 'female' || state.filter === '女声') return !isMale;
         return true;
       });
       list.innerHTML = voices.map(v => {
-        const isMale = v.gender === '男声' || v.gender_en === 'Male';
+        const fallback = VOICE_I18N[v.id] || {};
+        const isMale = v.gender === '男声' || v.gender_en === 'Male' || fallback.gender === 'Male';
         const mark = v.id === state.voice ? '●' : (isZh ? (isMale ? '男' : '女') : (isMale ? 'M' : 'F'));
-        const desc = (!isZh && v.description_en) ? v.description_en : v.description;
-        const tag = (!isZh && v.tags_en && v.tags_en[0]) ? v.tags_en[0] : (v.tags[0] || '');
+        const desc = isZh ? v.description : (v.description_en || fallback.desc || '');
+        const tag = isZh ? (v.tags?.[0] || '') : (v.tags_en?.[0] || fallback.tag || '');
         return `
         <li>
           <button class="voice" role="radio" aria-checked="${v.id === state.voice}" data-id="${escapeHtml(v.id)}">
@@ -721,7 +739,8 @@
     function renderModels() {
       const isZh = state.lang === 'zh';
       $('modelList').innerHTML = state.models.map(m => {
-        const desc = (!isZh && m.description_en) ? m.description_en : m.description;
+        const fallback = MODEL_I18N[m.id] || {};
+        const desc = isZh ? m.description : (m.description_en || fallback.desc || '');
         return `
         <button class="model" role="radio" aria-checked="${m.id === state.model}" data-id="${escapeHtml(m.id)}">
           <span class="radio"></span>

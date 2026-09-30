@@ -41,7 +41,7 @@ def main():
 
     # 启动 FastAPI 服务
     try:
-        uvicorn.run("app:app", host=host, port=port, reload=False, log_level="info")
+        uvicorn.run("app:app", host=host, port=port, reload=True, log_level="info")
     except KeyboardInterrupt:
         print("\n[*] 服务已停止。" if is_zh else "\n[*] Service stopped.")
 
