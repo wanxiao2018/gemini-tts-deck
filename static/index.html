@@ -409,8 +409,8 @@
             <h2><span class="num">02</span><span id="txtVoice">声音</span></h2>
             <div class="filter" id="genderFilter">
               <button data-filter="all" id="btnFilterAll" aria-pressed="true">全部</button>
-              <button data-filter="男声" id="btnFilterMale" aria-pressed="false">男声</button>
-              <button data-filter="女声" id="btnFilterFemale" aria-pressed="false">女声</button>
+              <button data-filter="male" id="btnFilterMale" aria-pressed="false">男声</button>
+              <button data-filter="female" id="btnFilterFemale" aria-pressed="false">女声</button>
             </div>
           </div>
           <ul class="voice-list" id="voiceList" role="radiogroup" aria-label="音色"></ul>
@@ -423,10 +423,10 @@
           </div>
           <input id="stylePrompt" class="field" type="text" placeholder="比如：像老朋友聊天一样轻松">
           <div class="chips">
-            <button data-style="生动活泼，富有感染力" id="chipLively">活泼</button>
-            <button data-style="成熟稳重，严肃的新闻播音范" id="chipNews">新闻播报</button>
-            <button data-style="温柔舒缓的治愈语调，如在耳边低语" id="chipGentle">温柔</button>
-            <button data-style="充满戏剧张力与悬疑感" id="chipSuspense">悬疑</button>
+            <button data-style-zh="生动活泼，富有感染力" data-style-en="Lively, engaging, and dynamic delivery" id="chipLively">活泼</button>
+            <button data-style-zh="成熟稳重，严肃的新闻播音范" data-style-en="Authoritative, formal, and objective news broadcast style" id="chipNews">新闻播报</button>
+            <button data-style-zh="温柔舒缓的治愈语调，如在耳边低语" data-style-en="Gentle, soothing, and warm whispering tone" id="chipGentle">温柔</button>
+            <button data-style-zh="充满戏剧张力与悬疑感" data-style-en="Dramatic, suspenseful, and cinematic tone" id="chipSuspense">悬疑</button>
           </div>
         </div>
 
@@ -536,8 +536,13 @@
         nowVoiceEmpty: '尚未载入',
         nowTextEmpty: '生成或从记录中选一条',
         play: '播放',
+        pause: '暂停',
+        themeTitle: '切换主题',
+        speedTitle: '播放速度',
         copy: '复制文本',
         copied: '已复制文本',
+        networkError: '无法连接本地服务：',
+        requestError: '请求失败',
         confirmClearHistory: '清空全部录音记录？音频文件会保留在 output 目录。',
         clearedHistory: '记录已清空',
         keySaved: 'Key 已保存',
@@ -579,8 +584,13 @@
         nowVoiceEmpty: 'No audio loaded',
         nowTextEmpty: 'Generate audio or pick a take below',
         play: 'Play',
+        pause: 'Pause',
+        themeTitle: 'Toggle Theme',
+        speedTitle: 'Playback Speed',
         copy: 'Copy Text',
         copied: 'Text copied to clipboard',
+        networkError: 'Failed to connect to local server: ',
+        requestError: 'Request failed',
         confirmClearHistory: 'Clear all take history? Audio files will remain in output directory.',
         clearedHistory: 'History cleared',
         keySaved: 'API Key saved',
@@ -681,34 +691,46 @@
     // ---------- 声音 / 模型 ----------
     function renderVoices() {
       const list = $('voiceList');
-      const voices = state.voices.filter(v => state.filter === 'all' || v.gender === state.filter);
       const isZh = state.lang === 'zh';
+      const voices = state.voices.filter(v => {
+        if (state.filter === 'all') return true;
+        const isMale = v.gender === '男声' || v.gender_en === 'Male';
+        if (state.filter === 'male' || state.filter === '男声') return isMale;
+        if (state.filter === 'female' || state.filter === '女声') return !isMale;
+        return true;
+      });
       list.innerHTML = voices.map(v => {
-        const isMale = v.gender === '男声';
+        const isMale = v.gender === '男声' || v.gender_en === 'Male';
         const mark = v.id === state.voice ? '●' : (isZh ? (isMale ? '男' : '女') : (isMale ? 'M' : 'F'));
+        const desc = (!isZh && v.description_en) ? v.description_en : v.description;
+        const tag = (!isZh && v.tags_en && v.tags_en[0]) ? v.tags_en[0] : (v.tags[0] || '');
         return `
         <li>
           <button class="voice" role="radio" aria-checked="${v.id === state.voice}" data-id="${escapeHtml(v.id)}">
             <span class="mark">${mark}</span>
             <span>
               <span class="name">${escapeHtml(v.name)}</span>
-              <span class="desc">${escapeHtml(v.description)}</span>
+              <span class="desc">${escapeHtml(desc)}</span>
             </span>
-            <span class="tag">${escapeHtml(v.tags[0] || '')}</span>
+            <span class="tag">${escapeHtml(tag)}</span>
           </button>
         </li>`;
       }).join('');
     }
 
     function renderModels() {
-      $('modelList').innerHTML = state.models.map(m => `
+      const isZh = state.lang === 'zh';
+      $('modelList').innerHTML = state.models.map(m => {
+        const desc = (!isZh && m.description_en) ? m.description_en : m.description;
+        return `
         <button class="model" role="radio" aria-checked="${m.id === state.model}" data-id="${escapeHtml(m.id)}">
           <span class="radio"></span>
           <span>
             <span class="title">${escapeHtml(m.name.replace(/^Gemini\s*/, ''))}</span>
-            <span class="sub">${escapeHtml(m.description)}</span>
+            <span class="sub">${escapeHtml(desc)}</span>
           </span>
-        </button>`).join('');
+        </button>`;
+      }).join('');
     }
 
     async function fetchConfig() {
@@ -721,7 +743,8 @@
         state.voice = data.default_voice || state.voice;
         state.model = data.default_model || state.model;
       } catch (err) {
-        showError('无法连接本地服务：' + err.message);
+        const t = I18N[state.lang] || I18N.zh;
+        showError(t.networkError + err.message);
       }
       renderVoices();
       renderModels();
@@ -886,7 +909,8 @@
       const playing = !audio.paused;
       $('iconPlay').style.display = playing ? 'none' : '';
       $('iconPause').style.display = playing ? '' : 'none';
-      $('btnPlay').setAttribute('aria-label', playing ? '暂停' : '播放');
+      const t = I18N[state.lang] || I18N.zh;
+      $('btnPlay').setAttribute('aria-label', playing ? t.pause : t.play);
     }
 
     // ---------- 生成 ----------
@@ -939,7 +963,7 @@
           })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || `请求失败 (${res.status})`);
+        if (!res.ok) throw new Error(data.detail || `${t.requestError} (${res.status})`);
         await fetchHistory();
         const item = state.history.find(h => h.filename === data.data.filename) || data.data;
         loadTake(item);
@@ -1011,10 +1035,17 @@
       $('btnCancelKey').textContent = t.cancel;
       $('btnSaveKey').textContent = t.save;
 
+      $('btnTheme').title = t.themeTitle;
+      $('btnSpeed').title = t.speedTitle;
+      $('voiceList').setAttribute('aria-label', t.voice);
+      $('modelList').setAttribute('aria-label', t.model);
+
       applyTheme(document.documentElement.dataset.theme || '');
       renderKeyStatus();
       renderVoices();
+      renderModels();
       renderHistory();
+      syncPlayIcon();
     }
 
     // ---------- 事件 ----------
@@ -1054,8 +1085,8 @@
         state.model = b.dataset.id;
         renderModels();
       });
-      document.querySelectorAll('[data-style]').forEach(b => b.addEventListener('click', () => {
-        $('stylePrompt').value = b.dataset.style;
+      document.querySelectorAll('[data-style-zh]').forEach(b => b.addEventListener('click', () => {
+        $('stylePrompt').value = state.lang === 'en' ? b.dataset.styleEn : b.dataset.styleZh;
       }));
 
       $('btnGenerate').addEventListener('click', generate);
