@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -88,7 +88,7 @@
     .mono { font-family: var(--mono); font-size: 12px; letter-spacing: 0.02em; }
     .muted { color: var(--muted); }
 
-    /* ---------- 顶栏 ---------- */
+    /* ---------- Topbar ---------- */
     .topbar {
       display: flex; align-items: center; justify-content: space-between;
       max-width: 1240px; margin: 0 auto; padding: 22px 32px 6px;
@@ -109,7 +109,7 @@
     .key-status[data-state="none"] .dot { background: var(--accent); }
     .key-status[data-state="none"] { color: var(--accent); }
 
-    /* ---------- 主布局 ---------- */
+    /* ---------- Main Layout ---------- */
     .layout {
       max-width: 1240px; margin: 0 auto; padding: 20px 32px 0;
       display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: stretch;
@@ -126,7 +126,7 @@
     .card-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
     .card-head h2 .num { font-family: var(--mono); font-weight: 400; color: var(--muted); margin-right: 8px; }
 
-    /* ---------- 稿件编辑区 ---------- */
+    /* ---------- Script Editor ---------- */
     .script { min-width: 0; display: flex; flex-direction: column; padding-bottom: 0; }
     .toolbar {
       display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
@@ -146,8 +146,8 @@
     .text-btn:hover { color: var(--ink); }
     .text-btn.danger:hover { color: var(--accent); }
 
-    /* 编辑区高度由右栏决定（绝对定位不参与撑高），超出时在框内滚动；
-       背景高亮层与输入框在同一滚动容器里保持对齐 */
+    /* Editor height matches rail height; scrolls internally when content overflows;
+       backdrop highlight stays aligned with textarea inside the same container */
     .editor-wrap { position: relative; flex: 1; min-height: 320px; margin: 0 -22px; }
     .editor {
       position: absolute; inset: 0;
@@ -177,7 +177,7 @@
     }
     .editor textarea::placeholder { color: var(--muted); opacity: 0.8; }
 
-    /* ---------- 右侧控制台 ---------- */
+    /* ---------- Controls Rail ---------- */
     .rail { display: flex; flex-direction: column; gap: 12px; }
     .controls { flex: 1; }
     .rail-section + .rail-section { margin-top: 24px; }
@@ -253,7 +253,7 @@
     }
     .error[hidden] { display: none; }
 
-    /* ---------- 录音记录 ---------- */
+    /* ---------- Takes History ---------- */
     .takes { max-width: 1240px; margin: 0 auto; padding: 20px 32px 40px; }
     .take-list { list-style: none; margin: 0 -12px; padding: 0; }
     .take {
@@ -278,7 +278,7 @@
     .take .actions .play:hover { color: var(--accent-hover); }
     .empty { padding: 12px; color: var(--muted); font-size: 13px; }
 
-    /* ---------- 底部播放条 ---------- */
+    /* ---------- Transport Bar ---------- */
     .transport {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
       background: var(--surface); border-top: 1px solid var(--line);
@@ -307,7 +307,7 @@
     .tools a:hover { color: var(--accent); }
     .tools a[aria-disabled="true"] { pointer-events: none; opacity: 0.35; }
 
-    /* ---------- 弹窗 / 提示 ---------- */
+    /* ---------- Settings Dialog & Toast ---------- */
     dialog {
       border: 0; border-radius: 12px; padding: 28px; width: min(440px, calc(100vw - 32px));
       background: var(--surface); color: var(--ink);
@@ -334,7 +334,7 @@
     }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
-    /* ---------- 响应式 ---------- */
+    /* ---------- Responsive Layout ---------- */
     @media (max-width: 960px) {
       .layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
       .editor-wrap { min-height: clamp(260px, 50vh, 460px); }
@@ -365,109 +365,109 @@
       <span class="sub muted">DECK</span>
     </div>
     <div class="topbar-right">
-      <span class="mono muted hide-sm" id="txtShortcuts">⌘↵ 生成 · 空格 播放</span>
+      <span class="mono muted hide-sm" id="txtShortcuts">⌘↵ Gen · Space Play</span>
       <button id="btnLang" class="theme-btn mono" title="Switch Language">English</button>
-      <button id="btnTheme" class="theme-btn mono" title="切换主题">主题 · 自动</button>
+      <button id="btnTheme" class="theme-btn mono" title="Toggle Theme">Theme: Auto</button>
       <button id="keyStatus" class="key-status mono" data-state="loading">
-        <span class="dot"></span><span id="keyStatusText">检查密钥</span>
+        <span class="dot"></span><span id="keyStatusText">Checking Key</span>
       </button>
     </div>
   </header>
 
   <main class="layout">
-    <!-- 稿件 -->
+    <!-- Script Section -->
     <section class="card script">
       <div class="card-head">
-        <h2><span class="num">01</span><span id="txtScript">稿件</span></h2>
-        <span class="mono muted"><span id="charCount">0</span> <span id="txtUnitChar">字</span> · <span id="txtUnitEst">约</span> <span id="estDuration">0</span> <span id="txtUnitSec">秒</span></span>
+        <h2><span class="num">01</span><span id="txtScript">Script</span></h2>
+        <span class="mono muted"><span id="charCount">0</span> <span id="txtUnitChar">chars</span> · <span id="txtUnitEst">~</span> <span id="estDuration">0</span> <span id="txtUnitSec">s</span></span>
       </div>
 
       <div class="toolbar">
-        <span class="label mono muted" id="txtInsert">插入</span>
-        <button class="tag-btn" data-tag="<laugh>"><span data-tag-name="laugh">笑</span> <code>&lt;laugh&gt;</code></button>
-        <button class="tag-btn" data-tag="<sigh>"><span data-tag-name="sigh">叹气</span> <code>&lt;sigh&gt;</code></button>
-        <button class="tag-btn" data-tag="<whisper>"><span data-tag-name="whisper">耳语</span> <code>&lt;whisper&gt;</code></button>
-        <button class="tag-btn" data-tag="<gasp>"><span data-tag-name="gasp">吸气</span> <code>&lt;gasp&gt;</code></button>
-        <button class="tag-btn" data-tag="<pause>"><span data-tag-name="pause">停顿</span> <code>&lt;pause&gt;</code></button>
+        <span class="label mono muted" id="txtInsert">Insert</span>
+        <button class="tag-btn" data-tag="<laugh>"><span data-tag-name="laugh">Laugh</span> <code>&lt;laugh&gt;</code></button>
+        <button class="tag-btn" data-tag="<sigh>"><span data-tag-name="sigh">Sigh</span> <code>&lt;sigh&gt;</code></button>
+        <button class="tag-btn" data-tag="<whisper>"><span data-tag-name="whisper">Whisper</span> <code>&lt;whisper&gt;</code></button>
+        <button class="tag-btn" data-tag="<gasp>"><span data-tag-name="gasp">Gasp</span> <code>&lt;gasp&gt;</code></button>
+        <button class="tag-btn" data-tag="<pause>"><span data-tag-name="pause">Pause</span> <code>&lt;pause&gt;</code></button>
         <span class="spacer"></span>
-        <button id="btnClearText" class="text-btn danger"><span id="txtClearScript">清空</span></button>
+        <button id="btnClearText" class="text-btn danger"><span id="txtClearScript">Clear</span></button>
       </div>
 
       <div class="editor-wrap">
         <div class="editor">
           <div class="editor-backdrop" id="backdrop" aria-hidden="true"></div>
-          <textarea id="textInput" spellcheck="false" placeholder="把要读的文字写在这里。&#10;&#10;需要笑、叹气或停顿的地方，从上面插入标记。"></textarea>
+          <textarea id="textInput" spellcheck="false" placeholder="Type or paste your script here.&#10;&#10;Insert emotion tags (&lt;laugh&gt;, &lt;sigh&gt;, &lt;pause&gt;) above for hyper-realistic acting."></textarea>
         </div>
       </div>
     </section>
 
-    <!-- 控制台 -->
+    <!-- Controls Rail -->
     <aside class="rail">
       <div class="card controls">
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">02</span><span id="txtVoice">声音</span></h2>
+            <h2><span class="num">02</span><span id="txtVoice">Voice</span></h2>
             <div class="filter" id="genderFilter">
-              <button data-filter="all" id="btnFilterAll" aria-pressed="true">全部</button>
-              <button data-filter="male" id="btnFilterMale" aria-pressed="false">男声</button>
-              <button data-filter="female" id="btnFilterFemale" aria-pressed="false">女声</button>
+              <button data-filter="all" id="btnFilterAll" aria-pressed="true">All</button>
+              <button data-filter="male" id="btnFilterMale" aria-pressed="false">Male</button>
+              <button data-filter="female" id="btnFilterFemale" aria-pressed="false">Female</button>
             </div>
           </div>
-          <ul class="voice-list" id="voiceList" role="radiogroup" aria-label="音色"></ul>
+          <ul class="voice-list" id="voiceList" role="radiogroup" aria-label="Voices"></ul>
         </div>
 
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">03</span><span id="txtDelivery">语气</span></h2>
-            <span class="mono muted" id="txtOptional">可选</span>
+            <h2><span class="num">03</span><span id="txtDelivery">Delivery</span></h2>
+            <span class="mono muted" id="txtOptional">Optional</span>
           </div>
-          <input id="stylePrompt" class="field" type="text" placeholder="比如：像老朋友聊天一样轻松">
+          <input id="stylePrompt" class="field" type="text" placeholder="e.g., Casual tone like talking to an old friend">
           <div class="chips">
-            <button data-style-zh="生动活泼，富有感染力" data-style-en="Lively, engaging, and dynamic delivery" id="chipLively">活泼</button>
-            <button data-style-zh="成熟稳重，严肃的新闻播音范" data-style-en="Authoritative, formal, and objective news broadcast style" id="chipNews">新闻播报</button>
-            <button data-style-zh="温柔舒缓的治愈语调，如在耳边低语" data-style-en="Gentle, soothing, and warm whispering tone" id="chipGentle">温柔</button>
-            <button data-style-zh="充满戏剧张力与悬疑感" data-style-en="Dramatic, suspenseful, and cinematic tone" id="chipSuspense">悬疑</button>
+            <button data-style-zh="生动活泼，富有感染力" data-style-en="Lively, engaging, and dynamic delivery" id="chipLively">Lively</button>
+            <button data-style-zh="成熟稳重，严肃的新闻播音范" data-style-en="Authoritative, formal, and objective news broadcast style" id="chipNews">News</button>
+            <button data-style-zh="温柔舒缓的治愈语调，如在耳边低语" data-style-en="Gentle, soothing, and warm whispering tone" id="chipGentle">Gentle</button>
+            <button data-style-zh="充满戏剧张力与悬疑感" data-style-en="Dramatic, suspenseful, and cinematic tone" id="chipSuspense">Suspense</button>
           </div>
         </div>
 
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">04</span><span id="txtModel">模型</span></h2>
+            <h2><span class="num">04</span><span id="txtModel">Model</span></h2>
           </div>
-          <div class="models" id="modelList" role="radiogroup" aria-label="模型"></div>
+          <div class="models" id="modelList" role="radiogroup" aria-label="Models"></div>
         </div>
 
         <div id="errorBox" class="error" hidden></div>
       </div>
 
       <button id="btnGenerate" class="generate">
-        <span class="label" id="generateLabel">生成语音</span>
+        <span class="label" id="generateLabel">Generate Voice</span>
         <span class="kbd" id="generateKbd">⌘ ↵</span>
       </button>
     </aside>
   </main>
 
-  <!-- 录音记录 -->
+  <!-- Takes History -->
   <section class="takes">
     <div class="card">
       <div class="card-head">
-        <h2><span class="num">05</span><span id="txtTakes">录音记录</span> <span class="mono muted" id="takeCount"></span></h2>
-        <button id="btnClearHistory" class="text-btn danger"><span id="txtClearHistory">清空记录</span></button>
+        <h2><span class="num">05</span><span id="txtTakes">Takes History</span> <span class="mono muted" id="takeCount"></span></h2>
+        <button id="btnClearHistory" class="text-btn danger"><span id="txtClearHistory">Clear History</span></button>
       </div>
       <ol class="take-list" id="takeList"></ol>
     </div>
   </section>
 
-  <!-- 播放条 -->
+  <!-- Transport Bar -->
   <div class="transport">
     <div class="transport-inner">
-      <button id="btnPlay" class="play-btn" disabled aria-label="播放">
+      <button id="btnPlay" class="play-btn" disabled aria-label="Play">
         <svg id="iconPlay" viewBox="0 0 14 14"><path d="M3 1.5v11l9.5-5.5z"/></svg>
         <svg id="iconPause" viewBox="0 0 14 14" style="display:none"><path d="M2.5 1.5h3v11h-3zM8.5 1.5h3v11h-3z"/></svg>
       </button>
       <div class="now">
-        <span class="who" id="nowVoice">尚未载入</span>
-        <span class="what" id="nowText">生成或从记录中选一条</span>
+        <span class="who" id="nowVoice">No audio loaded</span>
+        <span class="what" id="nowText">Generate audio or pick a take below</span>
       </div>
       <div class="wave-wrap">
         <span class="mono muted" id="timeCur">0:00</span>
@@ -475,8 +475,8 @@
         <span class="mono muted" id="timeDur">0:00</span>
       </div>
       <div class="tools">
-        <button id="btnSpeed" class="speed" title="播放速度">1.0×</button>
-        <button id="btnCopy" class="text-btn"><span id="txtCopy">复制文本</span></button>
+        <button id="btnSpeed" class="speed" title="Playback Speed">1.0×</button>
+        <button id="btnCopy" class="text-btn"><span id="txtCopy">Copy Text</span></button>
         <a id="dlWav" href="#" download aria-disabled="true">WAV</a>
         <a id="dlMp3" href="#" download aria-disabled="true">MP3</a>
       </div>
@@ -487,12 +487,12 @@
   <dialog id="settings">
     <form method="dialog">
       <h3 id="txtKeyTitle">Gemini API Key</h3>
-      <p id="txtKeyDesc">服务端配置了环境变量 <code>GEMINI_API_KEY</code> 时会优先使用它。在这里填写的 Key 只保存在当前浏览器，随请求发给本地服务。</p>
+      <p id="txtKeyDesc">If GEMINI_API_KEY is configured on the server, it is used by default. Keys entered here are stored strictly in your browser.</p>
       <label for="apiKeyInput">API Key</label>
       <input id="apiKeyInput" class="field" type="password" placeholder="AIzaSy…" autocomplete="off">
       <div class="dialog-actions">
-        <button type="button" class="btn ghost" id="btnCancelKey">取消</button>
-        <button value="save" class="btn solid" id="btnSaveKey">保存</button>
+        <button type="button" class="btn ghost" id="btnCancelKey">Cancel</button>
+        <button value="save" class="btn solid" id="btnSaveKey">Save</button>
       </div>
     </form>
   </dialog>
@@ -617,8 +617,8 @@
       hasEnvKey: false,
       userKey: storage.get('GEMINI_API_KEY'),
       history: [],
-      current: null,      // 当前播放的记录
-      peaks: null,        // 当前音频的波形峰值
+      current: null,      // Currently active take
+      peaks: null,        // Soundwave peaks for active audio
       speedIdx: 0,
       busy: false
     };
@@ -646,12 +646,12 @@
       toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
     }
 
-    // ---------- 稿件编辑 ----------
+    // ---------- Script Editor ----------
     function syncEditor() {
       const v = textInput.value;
-      // 背景层高亮 <tag>，末尾补一个空格防止换行时高度不一致
+      // Highlight <tag> in backdrop; trailing space keeps alignment on word wraps
       backdrop.innerHTML = escapeHtml(v).replace(/&lt;[a-z_]+&gt;/gi, m => `<mark>${m}</mark>`) + ' ';
-      // 输入框随内容撑高，由外层 .editor 固定高度并滚动；重设高度时保留滚动位置
+      // Auto-expand textarea; parent .editor handles fixed scrolling and preserves position
       const box = textInput.parentElement, top = box.scrollTop;
       textInput.style.height = 'auto';
       textInput.style.height = textInput.scrollHeight + 'px';
@@ -672,7 +672,7 @@
       syncEditor();
     }
 
-    // ---------- 密钥 ----------
+    // ---------- API Key Management ----------
     function renderKeyStatus() {
       const el = $('keyStatus');
       const t = I18N[state.lang] || I18N.zh;
@@ -688,7 +688,7 @@
       $('apiKeyInput').focus();
     }
 
-    // ---------- 声音 / 模型 ----------
+    // ---------- Voices & Models ----------
     const VOICE_I18N = {
       Puck: { gender: 'Male', tag: 'Lively & Relatable', desc: 'Crisp and lively with expressive clarity. Great for commentary, vlogs, and daily dialogue.' },
       Aoede: { gender: 'Female', tag: 'Warm & Elegant', desc: 'Warm, elegant, and resonant. Perfect for prose, lyrical monologues, and storytelling.' },
@@ -770,7 +770,7 @@
       renderKeyStatus();
     }
 
-    // ---------- 录音记录 ----------
+    // ---------- Takes History ----------
     const mp3Of = item => ({
       url: item.mp3_url || item.url.replace(/\.wav$/, '.mp3'),
       filename: item.mp3_filename || item.filename.replace(/\.wav$/, '.mp3')
@@ -813,7 +813,7 @@
       }).join('');
     }
 
-    // ---------- 播放条 ----------
+    // ---------- Transport Bar ----------
     async function loadTake(item, autoplay = true) {
       state.current = item;
       state.peaks = null;
@@ -843,10 +843,10 @@
         if (state.current !== item) return;
         state.peaks = computePeaks(samples, 600);
         drawWave();
-      } catch { /* 波形只是装饰，失败时退化为进度条 */ }
+      } catch { /* Waveform is aesthetic; degrades to progress bar on error */ }
     }
 
-    // 直接解析 16-bit PCM WAV 的第一声道；其他格式返回 null 交给 decodeAudioData
+    // Parse channel 0 of 16-bit PCM WAV directly; falls back to decodeAudioData for others
     function readPcmWav(buf) {
       const v = new DataView(buf);
       if (buf.byteLength < 44 || v.getUint32(0) !== 0x52494646 || v.getUint32(8) !== 0x57415645) return null;
@@ -932,7 +932,7 @@
       $('btnPlay').setAttribute('aria-label', playing ? t.pause : t.play);
     }
 
-    // ---------- 生成 ----------
+    // ---------- Speech Generation ----------
     function showError(msg) {
       const el = $('errorBox');
       el.textContent = msg;
@@ -993,7 +993,7 @@
       }
     }
 
-    // ---------- 主题与语言 ----------
+    // ---------- Theme & Language Settings ----------
     function applyTheme(theme) {
       if (theme) document.documentElement.dataset.theme = theme;
       else delete document.documentElement.dataset.theme;
@@ -1067,7 +1067,7 @@
       syncPlayIcon();
     }
 
-    // ---------- 事件 ----------
+    // ---------- Event Bindings ----------
     function bind() {
       textInput.addEventListener('input', syncEditor);
       window.addEventListener('resize', () => { syncEditor(); drawWave(); });

@@ -4,7 +4,7 @@ import argparse
 import subprocess
 from pathlib import Path
 
-# 确保能导入同目录下的 core
+# Ensure core engine can be imported from current directory
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from core import GeminiTTSClient, PRESET_VOICES, SUPPORTED_MODELS, OUTPUT_DIR
 
@@ -107,7 +107,7 @@ Examples:
         list_voices()
         return
 
-    # 获取输入文本
+    # Retrieve input text
     content = ""
     if args.file:
         file_path = Path(args.file)
@@ -149,7 +149,7 @@ Examples:
         output_path = OUTPUT_DIR / result["filename"]
         mp3_path = OUTPUT_DIR / result["mp3_filename"]
 
-        # 如果用户指定了 .mp3 输出文件
+        # Handle .mp3 output destination if specified
         if args.output and args.output.endswith(".mp3"):
             import shutil
             shutil.copyfile(mp3_path, args.output)
@@ -173,7 +173,7 @@ Examples:
                 if mp3_path.exists():
                     print(f"    MP3 output: {mp3_path} ({result.get('mp3_size_kb', 0)} KB)")
 
-        # 全平台播放支持 (macOS / Windows / Linux)
+        # Cross-platform audio playback (macOS / Windows / Linux)
         if args.play:
             play_start = "[*] 正在播放音频 (按 Ctrl+C 可停止)..." if is_zh else "[*] Playing audio (Press Ctrl+C to stop)..."
             print(play_start)

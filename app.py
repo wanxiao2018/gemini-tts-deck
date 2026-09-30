@@ -17,7 +17,7 @@ from core import (
 
 app = FastAPI(title="Gemini TTS Deck", version="1.0.0")
 
-# 挂载静态目录
+# Mount static assets directory
 STATIC_DIR = APP_DIR / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -26,11 +26,11 @@ tts_client = GeminiTTSClient()
 
 
 class TTSRequest(BaseModel):
-    text: str = Field(..., min_length=1, description="待转换的文本内容")
-    voice: str = Field(default="Puck", description="音色名称")
-    model: str = Field(default="gemini-3.8-flash-tts", description="模型 ID")
-    style_prompt: Optional[str] = Field(default="", description="朗读语气/风格指令")
-    api_key: Optional[str] = Field(default="", description="Gemini API Key (可选)")
+    text: str = Field(..., min_length=1, description="Text content to synthesize")
+    voice: str = Field(default="Puck", description="Voice preset name")
+    model: str = Field(default="gemini-3.8-flash-tts", description="Gemini model ID")
+    style_prompt: Optional[str] = Field(default="", description="Speech style and delivery instruction")
+    api_key: Optional[str] = Field(default="", description="Optional Gemini API key override")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -44,12 +44,12 @@ async def serve_index():
 
 @app.get("/api/config")
 async def get_config():
-    """获取可用音色、模型列表以及当前系统环境 API Key 状态"""
+    """Get available voices, supported models, and API key configuration status."""
     has_env_key = bool(os.environ.get("GEMINI_API_KEY", "").strip())
     return {
         "voices": PRESET_VOICES,
-        "male_voices": [v for v in PRESET_VOICES if v["gender"] == "男声"],
-        "female_voices": [v for v in PRESET_VOICES if v["gender"] == "女声"],
+        "male_voices": [v for v in PRESET_VOICES if v.get("gender_en") == "Male" or v["gender"] == "男声"],
+        "female_voices": [v for v in PRESET_VOICES if v.get("gender_en") == "Female" or v["gender"] == "女声"],
         "models": SUPPORTED_MODELS,
         "has_env_key": has_env_key,
         "default_voice": "Puck",
@@ -60,20 +60,20 @@ async def get_config():
 
 @app.get("/api/history")
 async def get_history():
-    """获取历史生成记录"""
+    """Retrieve historical speech generation records."""
     return tts_client.load_history()
 
 
 @app.delete("/api/history")
 async def clear_history():
-    """清空历史生成记录"""
+    """Clear all recording history records."""
     tts_client.clear_history()
     return {"success": True, "message": "History cleared"}
 
 
 @app.post("/api/tts")
 async def convert_tts(req: TTSRequest):
-    """将文本转换为语音"""
+    """Convert input text to speech using Gemini TTS API."""
     try:
         result = await tts_client.generate_speech(
             text=req.text,
@@ -89,11 +89,11 @@ async def convert_tts(req: TTSRequest):
 
 @app.get("/audio/{filename}")
 async def get_audio_file(filename: str):
-    """提供音频文件下载和播放 (支持 .wav 和 .mp3)"""
+    """Serve generated audio files (.wav and .mp3)."""
     safe_name = Path(filename).name
     file_path = OUTPUT_DIR / safe_name
 
-    # 若请求 .mp3 且本地尚不存在，自动从对应 .wav 转码生成
+    # If .mp3 is requested and does not exist locally, transcode on-the-fly from .wav
     if safe_name.endswith(".mp3") and (not file_path.exists() or file_path.stat().st_size == 0):
         wav_path = file_path.with_suffix(".wav")
         if wav_path.exists():

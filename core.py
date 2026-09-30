@@ -9,7 +9,7 @@ import httpx
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
-# 基础目录
+# Base directory paths
 APP_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = APP_DIR / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -17,7 +17,7 @@ HISTORY_FILE = OUTPUT_DIR / "history.json"
 
 
 def load_dotenv():
-    """轻量零依赖 .env 文件解析器，便于开源项目开箱即用"""
+    """Lightweight zero-dependency .env parser for out-of-the-box local setup."""
     env_paths = [APP_DIR / ".env", Path.cwd() / ".env"]
     for env_file in env_paths:
         if env_file.exists():
@@ -40,20 +40,20 @@ load_dotenv()
 
 
 def build_clean_filename(voice: str, text: str, ext: str = "wav", timestamp: Optional[str] = None) -> str:
-    """构建人性化、规范的音频文件名：{年月日_时分秒}_{音色}_{文案摘要}.{ext}
-    不含 geminitts，日期时间置前，自动剔除微表情标签与标点符号。
+    """Build standardized audio filename: {YYYYMMDD_HHMMSS}_{Voice}_{CleanSnippet}.{ext}.
+    Date-first ordering, emotion tags stripped, CJK & alphanumeric preserved.
     """
     ts = timestamp or time.strftime("%Y%m%d_%H%M%S")
-    # 去除表情/语气标签，如 <laugh>, <sigh>, <whisper> 等
+    # Remove emotion/gesture tags like <laugh>, <sigh>, <whisper>
     clean_text = re.sub(r"<[^>]+>", "", text).strip()
-    # 仅保留中文、英文字符与数字，去除特殊标点符号
+    # Retain alphanumeric & CJK characters, strip special punctuation
     clean_chars = "".join(c for c in clean_text if c.isalnum() or c in ("-", "_")).strip()
-    snippet = clean_chars[:12].strip() or "语音"
+    snippet = clean_chars[:12].strip() or "Speech"
     return f"{ts}_{voice}_{snippet}.{ext.lstrip('.')}"
 
 
 def convert_wav_to_mp3(wav_path: Path) -> Path:
-    """将 WAV 音频文件转码为 192kbps MP3 文件并缓存"""
+    """Transcode WAV file to 192kbps MP3 with caching."""
     wav_path = Path(wav_path)
     mp3_path = wav_path.with_suffix(".mp3")
     if mp3_path.exists() and mp3_path.stat().st_size > 0:
@@ -71,8 +71,8 @@ def convert_wav_to_mp3(wav_path: Path) -> Path:
                 break
 
     if not ffmpeg_bin:
-        hint = "Windows 请运行: winget install Gyan.FFmpeg" if sys.platform == "win32" else "macOS 请运行: brew install ffmpeg，Linux 请运行: sudo apt install ffmpeg"
-        raise RuntimeError(f"未检测到 ffmpeg 工具，无法完成 MP3 转码。{hint}")
+        hint = "On Windows run: winget install Gyan.FFmpeg; on macOS run: brew install ffmpeg; on Linux run: sudo apt install ffmpeg"
+        raise RuntimeError(f"FFmpeg not found. Cannot transcode audio to MP3. {hint}")
 
     try:
         subprocess.run(
@@ -86,7 +86,7 @@ def convert_wav_to_mp3(wav_path: Path) -> Path:
 
     return mp3_path
 
-# 支持的预置音色清单
+# Supported preset voices
 PRESET_VOICES = [
     {
         "id": "Puck",
@@ -201,7 +201,7 @@ class GeminiTTSClient:
         return key
 
     def load_history(self) -> List[Dict[str, Any]]:
-        """读取历史记录"""
+        """Load recording history from file."""
         if not HISTORY_FILE.exists():
             return []
         try:
@@ -211,10 +211,10 @@ class GeminiTTSClient:
             return []
 
     def save_history_item(self, item: Dict[str, Any]) -> None:
-        """追加历史记录"""
+        """Append an audio item to history."""
         history = self.load_history()
         history.insert(0, item)
-        # 最多保留 100 条
+        # Retain up to 100 recent takes
         history = history[:100]
         try:
             with open(HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -223,7 +223,7 @@ class GeminiTTSClient:
             print(f"Warning: Failed to save history: {e}")
 
     def clear_history(self) -> None:
-        """清空历史记录"""
+        """Clear recording history."""
         try:
             if HISTORY_FILE.exists():
                 with open(HISTORY_FILE, "w", encoding="utf-8") as f:
@@ -240,11 +240,11 @@ class GeminiTTSClient:
         custom_api_key: Optional[str] = None,
         output_filename: Optional[str] = None
     ) -> Dict[str, Any]:
-        """异步调用 Gemini TTS 接口生成语音并保存为 WAV 文件"""
+        """Asynchronously call Gemini TTS API and save synthesized audio."""
         api_key = self.get_api_key(custom_api_key)
         clean_text = text.strip()
         if not clean_text:
-            raise ValueError("输入文本不能为空")
+            raise ValueError("Input text cannot be empty")
 
         endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
         params = {"key": api_key}
@@ -269,7 +269,7 @@ class GeminiTTSClient:
             }
         }
 
-        # 如果用户提供了风格指导提示词
+        # Add delivery instruction if specified
         if style_prompt and style_prompt.strip():
             payload["systemInstruction"] = {
                 "parts": [
@@ -279,7 +279,7 @@ class GeminiTTSClient:
 
         headers = {"Content-Type": "application/json"}
 
-        # 发送请求
+        # Dispatch synthesis request
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.post(endpoint, params=params, json=payload, headers=headers)
 
@@ -295,7 +295,7 @@ class GeminiTTSClient:
 
         data = resp.json()
 
-        # 解析音频数据
+        # Parse audio stream payload
         try:
             candidates = data.get("candidates", [])
             if not candidates:
@@ -319,7 +319,7 @@ class GeminiTTSClient:
         except Exception as e:
             raise RuntimeError(f"Failed to parse audio response: {str(e)}")
 
-        # 保存为文件（日期置前，不含 geminitts，去除微表情标签）
+        # Save audio to disk (date-first naming, tags stripped)
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")
         if not output_filename:
             filename = build_clean_filename(voice=voice, text=clean_text, ext="wav", timestamp=timestamp_str)
@@ -332,7 +332,7 @@ class GeminiTTSClient:
 
         size_kb = round(len(audio_bytes) / 1024, 1)
 
-        # 自动预转码生成高质量 MP3 缓存
+        # Pre-transcode MP3 version for universal compatibility
         mp3_filename = Path(filename).with_suffix(".mp3").name
         mp3_size_kb = 0.0
         try:
@@ -381,7 +381,7 @@ class GeminiTTSClient:
         custom_api_key: Optional[str] = None,
         output_filename: Optional[str] = None
     ) -> Dict[str, Any]:
-        """同步调用方法，便于 CLI 脚本使用"""
+        """Synchronous helper for CLI execution."""
         import asyncio
         return asyncio.run(
             self.generate_speech(

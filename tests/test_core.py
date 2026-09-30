@@ -23,7 +23,7 @@ def test_build_clean_filename():
 
     # 4. Fallback when text has only punctuation
     fname_empty = build_clean_filename(voice="Fenrir", text="......？？！！", ext="wav", timestamp="20260930_120000")
-    assert fname_empty == "20260930_120000_Fenrir_语音.wav"
+    assert fname_empty == "20260930_120000_Fenrir_Speech.wav"
 
 
 def test_preset_voices_integrity():

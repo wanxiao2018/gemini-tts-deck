@@ -4,7 +4,7 @@ import threading
 import webbrowser
 from pathlib import Path
 
-# 添加当前目录到 sys.path
+# Add current directory to sys.path
 APP_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(APP_DIR))
 
@@ -17,7 +17,7 @@ def is_zh_locale() -> bool:
 
 
 def open_browser(url: str, delay: float = 1.0):
-    """延迟并在后台自动打开默认浏览器 / Launch browser in background"""
+    """Launch default web browser in background after short delay."""
     time.sleep(delay)
     msg = f"\n[*] 正在为您在浏览器中打开应用: {url}" if is_zh_locale() else f"\n[*] Opening Gemini TTS Deck in browser: {url}"
     print(msg)
@@ -36,10 +36,10 @@ def main():
     print(f"[*] 服务地址: {url}" if is_zh else f"[*] Studio URL: {url}")
     print("[*] 正在启动本地 Web 界面..." if is_zh else "[*] Launching local Web Deck...")
 
-    # 启动后台线程打开浏览器
+    # Spawn background thread to open browser
     threading.Thread(target=open_browser, args=(url, 1.2), daemon=True).start()
 
-    # 启动 FastAPI 服务
+    # Start FastAPI web service
     try:
         uvicorn.run("app:app", host=host, port=port, reload=True, log_level="info")
     except KeyboardInterrupt:
