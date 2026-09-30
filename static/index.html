@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gemini TTS Deck</title>
+  <script>
+    try { const t = localStorage.getItem('THEME'); if (t) document.documentElement.dataset.theme = t; } catch {}
+  </script>
+  <style>
+    :root {
+      --bg: #f3f3f1;
+      --surface: #ffffff;
+      --panel: #f4f4f2;
+      --ink: #1c1c1a;
+      --ink-2: #52524d;
+      --muted: #94938c;
+      --line: #e5e4e0;
+      --accent: #d4472d;
+      --accent-hover: #bd3c24;
+      --on-accent: #ffffff;
+      --accent-soft: rgba(212, 71, 45, 0.08);
+      --ok: #3f8a55;
+      --wave: #dcdbd6;
+      --tag-bg: rgba(212, 71, 45, 0.12);
+      --shadow: 0 1px 2px rgba(20, 20, 18, 0.04);
+
+      --serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", Georgia, serif;
+      --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --mono: "SF Mono", "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+      color-scheme: light dark;
+    }
+    :root[data-theme="light"] { color-scheme: light; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #121211;
+        --surface: #1b1b19;
+        --panel: #242421;
+        --ink: #ece7dc;
+        --ink-2: #c1bbae;
+        --muted: #878276;
+        --line: #2c2b28;
+        --accent: #ec6446;
+        --accent-hover: #f27a5f;
+        --on-accent: #1a0f0b;
+        --accent-soft: rgba(236, 100, 70, 0.14);
+        --ok: #7fb58d;
+        --wave: #3f3c36;
+        --tag-bg: rgba(236, 100, 70, 0.22);
+        --shadow: none;
+      }
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121211;
+      --surface: #1b1b19;
+      --panel: #242421;
+      --ink: #ece7dc;
+      --ink-2: #c1bbae;
+      --muted: #878276;
+      --line: #2c2b28;
+      --accent: #ec6446;
+      --accent-hover: #f27a5f;
+      --on-accent: #1a0f0b;
+      --accent-soft: rgba(236, 100, 70, 0.14);
+      --ok: #7fb58d;
+      --wave: #3f3c36;
+      --tag-bg: rgba(236, 100, 70, 0.22);
+      --shadow: none;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding-bottom: 100px;
+    }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: 0; padding: 0; }
+    a { color: inherit; }
+    ::selection { background: var(--accent-soft); }
+
+    .mono { font-family: var(--mono); font-size: 12px; letter-spacing: 0.02em; }
+    .muted { color: var(--muted); }
+
+    /* ---------- 顶栏 ---------- */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      max-width: 1240px; margin: 0 auto; padding: 22px 32px 6px;
+    }
+    .brand { display: flex; align-items: baseline; gap: 12px; }
+    .brand h1 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+    .brand .rec {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent); margin-right: 8px; transform: translateY(-1px);
+    }
+    .topbar-right { display: flex; align-items: center; gap: 20px; }
+    .theme-btn { color: var(--muted); }
+    .theme-btn:hover { color: var(--ink); }
+    .key-status { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+    .key-status:hover { color: var(--ink); }
+    .key-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+    .key-status[data-state="env"] .dot, .key-status[data-state="user"] .dot { background: var(--ok); }
+    .key-status[data-state="none"] .dot { background: var(--accent); }
+    .key-status[data-state="none"] { color: var(--accent); }
+
+    /* ---------- 主布局 ---------- */
+    .layout {
+      max-width: 1240px; margin: 0 auto; padding: 20px 32px 0;
+      display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 20px; align-items: stretch;
+    }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 20px 22px;
+    }
+    .card-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 12px; min-height: 24px;
+    }
+    .card-head h2 { margin: 0; font-size: 13px; font-weight: 600; }
+    .card-head h2 .num { font-family: var(--mono); font-weight: 400; color: var(--muted); margin-right: 8px; }
+
+    /* ---------- 稿件编辑区 ---------- */
+    .script { min-width: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+      padding-bottom: 6px;
+    }
+    .toolbar .label { margin-right: 6px; }
+    .tag-btn {
+      display: inline-flex; align-items: baseline; gap: 6px;
+      padding: 4px 10px; border-radius: 999px;
+      background: var(--panel); color: var(--ink-2); font-size: 12px;
+    }
+    .tag-btn code { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .tag-btn:hover { background: var(--accent-soft); color: var(--accent); }
+    .tag-btn:hover code { color: var(--accent); }
+    .toolbar .spacer { flex: 1; }
+    .text-btn { color: var(--muted); font-size: 12px; }
+    .text-btn:hover { color: var(--ink); }
+    .text-btn.danger:hover { color: var(--accent); }
+
+    /* 编辑区高度由右栏决定（绝对定位不参与撑高），超出时在框内滚动；
+       背景高亮层与输入框在同一滚动容器里保持对齐 */
+    .editor-wrap { position: relative; flex: 1; min-height: 320px; margin: 0 -22px; }
+    .editor {
+      position: absolute; inset: 0;
+      overflow-y: auto; overscroll-behavior: contain;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 20px), transparent 100%);
+      mask-image: linear-gradient(to bottom, transparent 0, #000 12px, #000 calc(100% - 20px), transparent 100%);
+    }
+    .editor-backdrop, .editor textarea {
+      font-family: var(--serif);
+      font-size: 19px; line-height: 1.9;
+      padding: 12px 22px 28px;
+      white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word;
+      letter-spacing: 0.01em;
+    }
+    .editor-backdrop {
+      position: absolute; top: 0; left: 0; right: 0;
+      color: transparent; pointer-events: none;
+    }
+    .editor-backdrop mark {
+      color: transparent; background: var(--tag-bg); border-radius: 3px;
+      box-shadow: 0 0 0 1px var(--tag-bg);
+    }
+    .editor textarea {
+      position: relative; display: block; width: 100%; min-height: 100%;
+      border: 0; outline: none; resize: none; overflow: hidden;
+      background: transparent; color: var(--ink);
+    }
+    .editor textarea::placeholder { color: var(--muted); opacity: 0.8; }
+
+    /* ---------- 右侧控制台 ---------- */
+    .rail { display: flex; flex-direction: column; gap: 12px; }
+    .controls { flex: 1; }
+    .rail-section + .rail-section { margin-top: 24px; }
+
+    .filter { display: inline-flex; gap: 2px; font-size: 12px; background: var(--panel); padding: 2px; border-radius: 6px; }
+    .filter button { color: var(--muted); padding: 2px 10px; border-radius: 4px; }
+    .filter button:hover { color: var(--ink); }
+    .filter button[aria-pressed="true"] { color: var(--ink); background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+
+    .voice-list { list-style: none; margin: 0 -10px; padding: 0; }
+    .voice {
+      display: grid; grid-template-columns: 18px 1fr auto; align-items: baseline; gap: 10px;
+      width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px;
+    }
+    .voice:hover { background: var(--panel); }
+    .voice .mark { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+    .voice .name { font-weight: 600; font-size: 14px; }
+    .voice .desc { display: none; color: var(--ink-2); font-size: 12px; margin-top: 3px; line-height: 1.6; }
+    .voice .tag { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .voice[aria-checked="true"] { background: var(--panel); }
+    .voice[aria-checked="true"] .desc { display: block; }
+    .voice[aria-checked="true"] .mark,
+    .voice[aria-checked="true"] .name { color: var(--accent); }
+    .voice[aria-checked="true"] .tag { color: var(--ink-2); }
+
+    .field {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+      background: var(--surface); outline: none; font-size: 14px;
+    }
+    .field:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .field::placeholder { color: var(--muted); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 12px; }
+    .chips button { color: var(--muted); }
+    .chips button:hover { color: var(--accent); }
+    .chips button::before { content: "+ "; font-family: var(--mono); }
+
+    .models { display: grid; gap: 2px; margin: 0 -10px; }
+    .model {
+      display: grid; grid-template-columns: 18px 1fr; gap: 10px; text-align: left;
+      padding: 8px 10px; border-radius: 6px;
+    }
+    .model:hover { background: var(--panel); }
+    .model .radio {
+      width: 12px; height: 12px; border: 1.5px solid var(--muted); border-radius: 50%;
+      margin-top: 4px; position: relative;
+    }
+    .model[aria-checked="true"] .radio { border-color: var(--accent); }
+    .model[aria-checked="true"] .radio::after {
+      content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--accent);
+    }
+    .model .title { font-size: 13px; font-weight: 600; }
+    .model .sub { display: block; font-size: 12px; color: var(--muted); }
+
+    .generate {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 16px 22px;
+      background: var(--accent); color: var(--on-accent); border-radius: 12px;
+      font-size: 15px; font-weight: 600;
+    }
+    .generate:hover { background: var(--accent-hover); }
+    .generate:disabled { cursor: progress; background: var(--accent-hover); }
+    .generate .kbd { font-family: var(--mono); font-size: 12px; font-weight: 400; opacity: 0.75; }
+    .generate.busy .label::before {
+      content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor; margin-right: 10px; transform: translateY(-1px);
+      animation: blink 1s steps(2, start) infinite;
+    }
+    @keyframes blink { to { visibility: hidden; } }
+    .error {
+      margin-top: 20px; padding: 10px 12px; font-size: 12px; line-height: 1.6; border-radius: 8px;
+      color: var(--accent); background: var(--accent-soft);
+      word-break: break-word;
+    }
+    .error[hidden] { display: none; }
+
+    /* ---------- 录音记录 ---------- */
+    .takes { max-width: 1240px; margin: 0 auto; padding: 20px 32px 40px; }
+    .take-list { list-style: none; margin: 0 -12px; padding: 0; }
+    .take {
+      display: grid; grid-template-columns: 52px 104px 76px minmax(0, 1fr) 150px; gap: 16px;
+      align-items: baseline; padding: 11px 12px; border-radius: 6px;
+    }
+    .take:hover { background: var(--panel); }
+    .take.current { background: var(--panel); }
+    .take.current .no { color: var(--accent); }
+    .take .no, .take .when { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+    .take .who { font-weight: 600; font-size: 13px; }
+    .take .what {
+      display: block; width: 100%; min-width: 0;
+      font-family: var(--serif); font-size: 15px; color: var(--ink-2);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+    }
+    .take .what:hover { color: var(--ink); }
+    .take .actions { display: flex; justify-content: flex-end; gap: 14px; font-size: 12px; }
+    .take .actions a, .take .actions button { color: var(--muted); text-decoration: none; }
+    .take .actions a:hover, .take .actions button:hover { color: var(--ink); }
+    .take .actions .play { color: var(--accent); font-weight: 600; }
+    .take .actions .play:hover { color: var(--accent-hover); }
+    .empty { padding: 12px; color: var(--muted); font-size: 13px; }
+
+    /* ---------- 底部播放条 ---------- */
+    .transport {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+      background: var(--surface); border-top: 1px solid var(--line);
+    }
+    .transport-inner {
+      max-width: 1240px; margin: 0 auto; padding: 14px 32px;
+      display: grid; grid-template-columns: 44px 200px minmax(0, 1fr) auto; gap: 20px; align-items: center;
+    }
+    .play-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--accent); color: var(--on-accent);
+      display: grid; place-items: center;
+    }
+    .play-btn:hover:not(:disabled) { background: var(--accent-hover); }
+    .play-btn:disabled { background: var(--panel); color: var(--muted); cursor: default; }
+    .play-btn svg { width: 14px; height: 14px; fill: currentColor; }
+    .now { min-width: 0; }
+    .now .who { font-weight: 600; font-size: 13px; display: block; }
+    .now .what { display: block; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .wave-wrap { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; min-width: 0; }
+    .wave-wrap canvas { width: 100%; height: 40px; display: block; cursor: pointer; }
+    .transport .tools { display: flex; align-items: center; gap: 16px; font-size: 12px; }
+    .speed { font-family: var(--mono); font-size: 12px; min-width: 44px; text-align: center; padding: 4px 8px; background: var(--panel); border-radius: 999px; }
+    .speed:hover { color: var(--accent); }
+    .tools a { text-decoration: none; color: var(--ink-2); }
+    .tools a:hover { color: var(--accent); }
+    .tools a[aria-disabled="true"] { pointer-events: none; opacity: 0.35; }
+
+    /* ---------- 弹窗 / 提示 ---------- */
+    dialog {
+      border: 0; border-radius: 12px; padding: 28px; width: min(440px, calc(100vw - 32px));
+      background: var(--surface); color: var(--ink);
+      box-shadow: 0 24px 60px -20px rgba(0,0,0,0.35);
+    }
+    dialog::backdrop { background: rgba(20, 18, 15, 0.4); }
+    dialog h3 { margin: 0 0 8px; font-size: 16px; }
+    dialog p { margin: 0 0 20px; font-size: 13px; color: var(--ink-2); line-height: 1.7; }
+    dialog code { font-family: var(--mono); font-size: 12px; background: var(--panel); padding: 1px 4px; border-radius: 3px; }
+    dialog label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    dialog .field { font-family: var(--mono); }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+    .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; }
+    .btn.ghost { color: var(--ink-2); }
+    .btn.ghost:hover { color: var(--ink); background: var(--panel); }
+    .btn.solid { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+    .btn.solid:hover { background: var(--accent-hover); }
+
+    .toast {
+      position: fixed; left: 50%; bottom: 96px; z-index: 30;
+      transform: translate(-50%, 8px); opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-size: 13px;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    /* ---------- 响应式 ---------- */
+    @media (max-width: 960px) {
+      .layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+      .editor-wrap { min-height: clamp(260px, 50vh, 460px); }
+      .take { grid-template-columns: 44px 70px minmax(0, 1fr); }
+      .take .when { display: none; }
+      .take .actions { grid-column: 2 / -1; justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
+      body { padding-bottom: 150px; }
+      .topbar, .layout, .takes { padding-left: 12px; padding-right: 12px; }
+      .layout, .takes { padding-top: 12px; }
+      .topbar { padding-top: 14px; }
+      .brand .sub, .hide-sm { display: none; }
+      .card { padding: 16px; }
+      .editor-wrap { margin: 0 -16px; }
+      .editor-backdrop, .editor textarea { font-size: 17px; padding: 10px 16px 24px; }
+      .transport-inner { padding: 12px 16px; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; }
+      .wave-wrap, .transport .tools { grid-column: 1 / -1; }
+      .toast { bottom: 160px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <h1><span class="rec"></span>Gemini TTS</h1>
+      <span class="sub muted">DECK</span>
+    </div>
+    <div class="topbar-right">
+      <span class="mono muted hide-sm">⌘↵ 生成 · 空格 播放</span>
+      <button id="btnTheme" class="theme-btn mono" title="切换主题">主题 · 自动</button>
+      <button id="keyStatus" class="key-status mono" data-state="loading">
+        <span class="dot"></span><span id="keyStatusText">检查密钥</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- 稿件 -->
+    <section class="card script">
+      <div class="card-head">
+        <h2><span class="num">01</span>稿件</h2>
+        <span class="mono muted"><span id="charCount">0</span> 字 · 约 <span id="estDuration">0</span> 秒</span>
+      </div>
+
+      <div class="toolbar">
+        <span class="label mono muted">插入</span>
+        <button class="tag-btn" data-tag="<laugh>">笑 <code>&lt;laugh&gt;</code></button>
+        <button class="tag-btn" data-tag="<sigh>">叹气 <code>&lt;sigh&gt;</code></button>
+        <button class="tag-btn" data-tag="<whisper>">耳语 <code>&lt;whisper&gt;</code></button>
+        <button class="tag-btn" data-tag="<gasp>">吸气 <code>&lt;gasp&gt;</code></button>
+        <button class="tag-btn" data-tag="<pause>">停顿 <code>&lt;pause&gt;</code></button>
+        <span class="spacer"></span>
+        <button id="btnClearText" class="text-btn danger">清空</button>
+      </div>
+
+      <div class="editor-wrap">
+        <div class="editor">
+          <div class="editor-backdrop" id="backdrop" aria-hidden="true"></div>
+          <textarea id="textInput" spellcheck="false" placeholder="把要读的文字写在这里。&#10;&#10;需要笑、叹气或停顿的地方，从上面插入标记。"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- 控制台 -->
+    <aside class="rail">
+      <div class="card controls">
+        <div class="rail-section">
+          <div class="card-head">
+            <h2><span class="num">02</span>声音</h2>
+            <div class="filter" id="genderFilter">
+              <button data-filter="all" aria-pressed="true">全部</button>
+              <button data-filter="男声" aria-pressed="false">男声</button>
+              <button data-filter="女声" aria-pressed="false">女声</button>
+            </div>
+          </div>
+          <ul class="voice-list" id="voiceList" role="radiogroup" aria-label="音色"></ul>
+        </div>
+
+        <div class="rail-section">
+          <div class="card-head">
+            <h2><span class="num">03</span>语气</h2>
+            <span class="mono muted">可选</span>
+          </div>
+          <input id="stylePrompt" class="field" type="text" placeholder="比如：像老朋友聊天一样轻松">
+          <div class="chips">
+            <button data-style="生动活泼，富有感染力">活泼</button>
+            <button data-style="成熟稳重，严肃的新闻播音范">新闻播报</button>
+            <button data-style="温柔舒缓的治愈语调，如在耳边低语">温柔</button>
+            <button data-style="充满戏剧张力与悬疑感">悬疑</button>
+          </div>
+        </div>
+
+        <div class="rail-section">
+          <div class="card-head">
+            <h2><span class="num">04</span>模型</h2>
+          </div>
+          <div class="models" id="modelList" role="radiogroup" aria-label="模型"></div>
+        </div>
+
+        <div id="errorBox" class="error" hidden></div>
+      </div>
+
+      <button id="btnGenerate" class="generate">
+        <span class="label" id="generateLabel">生成语音</span>
+        <span class="kbd" id="generateKbd">⌘ ↵</span>
+      </button>
+    </aside>
+  </main>
+
+  <!-- 录音记录 -->
+  <section class="takes">
+    <div class="card">
+      <div class="card-head">
+        <h2><span class="num">05</span>录音记录 <span class="mono muted" id="takeCount"></span></h2>
+        <button id="btnClearHistory" class="text-btn danger">清空记录</button>
+      </div>
+      <ol class="take-list" id="takeList"></ol>
+    </div>
+  </section>
+
+  <!-- 播放条 -->
+  <div class="transport">
+    <div class="transport-inner">
+      <button id="btnPlay" class="play-btn" disabled aria-label="播放">
+        <svg id="iconPlay" viewBox="0 0 14 14"><path d="M3 1.5v11l9.5-5.5z"/></svg>
+        <svg id="iconPause" viewBox="0 0 14 14" style="display:none"><path d="M2.5 1.5h3v11h-3zM8.5 1.5h3v11h-3z"/></svg>
+      </button>
+      <div class="now">
+        <span class="who" id="nowVoice">尚未载入</span>
+        <span class="what" id="nowText">生成或从记录中选一条</span>
+      </div>
+      <div class="wave-wrap">
+        <span class="mono muted" id="timeCur">0:00</span>
+        <canvas id="wave"></canvas>
+        <span class="mono muted" id="timeDur">0:00</span>
+      </div>
+      <div class="tools">
+        <button id="btnSpeed" class="speed" title="播放速度">1.0×</button>
+        <button id="btnCopy" class="text-btn">复制文本</button>
+        <a id="dlWav" href="#" download aria-disabled="true">WAV</a>
+        <a id="dlMp3" href="#" download aria-disabled="true">MP3</a>
+      </div>
+    </div>
+    <audio id="audio" preload="auto"></audio>
+  </div>
+
+  <dialog id="settings">
+    <form method="dialog">
+      <h3>Gemini API Key</h3>
+      <p>服务端配置了环境变量 <code>GEMINI_API_KEY</code> 时会优先使用它。在这里填写的 Key 只保存在当前浏览器，随请求发给本地服务。</p>
+      <label for="apiKeyInput">API Key</label>
+      <input id="apiKeyInput" class="field" type="password" placeholder="AIzaSy…" autocomplete="off">
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="btnCancelKey">取消</button>
+        <button value="save" class="btn solid" id="btnSaveKey">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const SPEEDS = [1.0, 1.25, 1.5, 0.8];
+    const THEMES = [['', '自动'], ['light', '亮色'], ['dark', '暗色']];
+
+    const storage = {
+      get(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
+      set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} }
+    };
+
+    const state = {
+      voices: [],
+      models: [],
+      voice: 'Puck',
+      model: 'gemini-3.8-flash-tts',
+      filter: 'all',
+      hasEnvKey: false,
+      userKey: storage.get('GEMINI_API_KEY'),
+      history: [],
+      current: null,      // 当前播放的记录
+      peaks: null,        // 当前音频的波形峰值
+      speedIdx: 0,
+      busy: false
+    };
+
+    const $ = id => document.getElementById(id);
+    const textInput = $('textInput');
+    const backdrop = $('backdrop');
+    const audio = $('audio');
+    const canvas = $('wave');
+
+    const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtTime = s => {
+      if (!isFinite(s)) return '0:00';
+      s = Math.max(0, Math.floor(s));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    };
+    const cssVar = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+    let toastTimer;
+    function toast(msg) {
+      const el = $('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+    }
+
+    // ---------- 稿件编辑 ----------
+    function syncEditor() {
+      const v = textInput.value;
+      // 背景层高亮 <tag>，末尾补一个空格防止换行时高度不一致
+      backdrop.innerHTML = escapeHtml(v).replace(/&lt;[a-z_]+&gt;/gi, m => `<mark>${m}</mark>`) + ' ';
+      // 输入框随内容撑高，由外层 .editor 固定高度并滚动；重设高度时保留滚动位置
+      const box = textInput.parentElement, top = box.scrollTop;
+      textInput.style.height = 'auto';
+      textInput.style.height = textInput.scrollHeight + 'px';
+      box.scrollTop = top;
+      const plain = v.replace(/<[^>]+>/g, '').replace(/\s+/g, '');
+      $('charCount').textContent = plain.length;
+      $('estDuration').textContent = plain.length ? Math.max(1, Math.round(plain.length / 3.8)) : 0;
+    }
+
+    function insertAtCursor(str) {
+      const { selectionStart: s, selectionEnd: e, value } = textInput;
+      const before = value.slice(0, s);
+      const pad = before && !/\s$/.test(before) ? ' ' : '';
+      const ins = pad + str + ' ';
+      textInput.value = before + ins + value.slice(e);
+      textInput.focus();
+      textInput.selectionStart = textInput.selectionEnd = s + ins.length;
+      syncEditor();
+    }
+
+    // ---------- 密钥 ----------
+    function renderKeyStatus() {
+      const el = $('keyStatus');
+      if (state.hasEnvKey) { el.dataset.state = 'env'; $('keyStatusText').textContent = 'KEY · 环境变量'; }
+      else if (state.userKey) { el.dataset.state = 'user'; $('keyStatusText').textContent = 'KEY · 本地 ••' + state.userKey.slice(-4); }
+      else { el.dataset.state = 'none'; $('keyStatusText').textContent = '未设置 KEY'; }
+    }
+
+    function openSettings() {
+      $('apiKeyInput').value = state.userKey;
+      $('settings').returnValue = '';
+      $('settings').showModal();
+      $('apiKeyInput').focus();
+    }
+
+    // ---------- 声音 / 模型 ----------
+    function renderVoices() {
+      const list = $('voiceList');
+      const voices = state.voices.filter(v => state.filter === 'all' || v.gender === state.filter);
+      list.innerHTML = voices.map(v => `
+        <li>
+          <button class="voice" role="radio" aria-checked="${v.id === state.voice}" data-id="${escapeHtml(v.id)}">
+            <span class="mark">${v.id === state.voice ? '●' : (v.gender === '女声' ? '女' : '男')}</span>
+            <span>
+              <span class="name">${escapeHtml(v.name)}</span>
+              <span class="desc">${escapeHtml(v.description)}</span>
+            </span>
+            <span class="tag">${escapeHtml(v.tags[0] || '')}</span>
+          </button>
+        </li>`).join('');
+    }
+
+    function renderModels() {
+      $('modelList').innerHTML = state.models.map(m => `
+        <button class="model" role="radio" aria-checked="${m.id === state.model}" data-id="${escapeHtml(m.id)}">
+          <span class="radio"></span>
+          <span>
+            <span class="title">${escapeHtml(m.name.replace(/^Gemini\s*/, ''))}</span>
+            <span class="sub">${escapeHtml(m.description)}</span>
+          </span>
+        </button>`).join('');
+    }
+
+    async function fetchConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        state.voices = data.voices || [];
+        state.models = data.models || [];
+        state.hasEnvKey = !!data.has_env_key;
+        state.voice = data.default_voice || state.voice;
+        state.model = data.default_model || state.model;
+      } catch (err) {
+        showError('无法连接本地服务：' + err.message);
+      }
+      renderVoices();
+      renderModels();
+      renderKeyStatus();
+    }
+
+    // ---------- 录音记录 ----------
+    const mp3Of = item => ({
+      url: item.mp3_url || item.url.replace(/\.wav$/, '.mp3'),
+      filename: item.mp3_filename || item.filename.replace(/\.wav$/, '.mp3')
+    });
+
+    async function fetchHistory() {
+      try {
+        const res = await fetch('/api/history');
+        state.history = await res.json() || [];
+      } catch {
+        state.history = [];
+      }
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const list = state.history;
+      $('takeCount').textContent = list.length ? `(${list.length})` : '';
+      if (!list.length) {
+        $('takeList').innerHTML = `<li class="empty">还没有录音。生成的每一条都会留在这里，可以重听和下载。</li>`;
+        return;
+      }
+      $('takeList').innerHTML = list.map((item, i) => {
+        const mp3 = mp3Of(item);
+        const no = String(list.length - i).padStart(2, '0');
+        const isCur = state.current && state.current.filename === item.filename;
+        return `
+          <li class="take${isCur ? ' current' : ''}" data-i="${i}">
+            <span class="no">T${no}</span>
+            <span class="when">${escapeHtml((item.created_at || '').slice(5, 16))}</span>
+            <span class="who">${escapeHtml(item.voice)}</span>
+            <button class="what" data-act="play" title="${escapeHtml(item.text)}">${escapeHtml(item.text)}</button>
+            <span class="actions">
+              <button class="play" data-act="play">播放</button>
+              <a href="${escapeHtml(item.url)}" download="${escapeHtml(item.filename)}">WAV</a>
+              <a href="${escapeHtml(mp3.url)}" download="${escapeHtml(mp3.filename)}">MP3</a>
+            </span>
+          </li>`;
+      }).join('');
+    }
+
+    // ---------- 播放条 ----------
+    async function loadTake(item, autoplay = true) {
+      state.current = item;
+      state.peaks = null;
+      const mp3 = mp3Of(item);
+
+      $('nowVoice').textContent = item.voice + (item.size_kb ? `  ·  ${item.size_kb} KB` : '');
+      $('nowText').textContent = item.text;
+      $('btnPlay').disabled = false;
+      for (const [id, url, name] of [['dlWav', item.url, item.filename], ['dlMp3', mp3.url, mp3.filename]]) {
+        $(id).href = url; $(id).download = name; $(id).removeAttribute('aria-disabled');
+      }
+
+      audio.src = item.url;
+      audio.playbackRate = SPEEDS[state.speedIdx];
+      if (autoplay) audio.play().catch(() => {});
+      renderHistory();
+      drawWave();
+
+      try {
+        const buf = await (await fetch(item.url)).arrayBuffer();
+        let samples = readPcmWav(buf);
+        if (!samples) {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          samples = (await ctx.decodeAudioData(buf)).getChannelData(0);
+          ctx.close();
+        }
+        if (state.current !== item) return;
+        state.peaks = computePeaks(samples, 600);
+        drawWave();
+      } catch { /* 波形只是装饰，失败时退化为进度条 */ }
+    }
+
+    // 直接解析 16-bit PCM WAV 的第一声道；其他格式返回 null 交给 decodeAudioData
+    function readPcmWav(buf) {
+      const v = new DataView(buf);
+      if (buf.byteLength < 44 || v.getUint32(0) !== 0x52494646 || v.getUint32(8) !== 0x57415645) return null;
+      let pos = 12, channels = 1, bits = 0;
+      while (pos + 8 <= buf.byteLength) {
+        const id = v.getUint32(pos), size = v.getUint32(pos + 4, true);
+        if (id === 0x666d7420) {            // 'fmt '
+          if (v.getUint16(pos + 8, true) !== 1) return null;
+          channels = v.getUint16(pos + 10, true);
+          bits = v.getUint16(pos + 22, true);
+        } else if (id === 0x64617461) {     // 'data'
+          if (bits !== 16) return null;
+          const len = Math.min(size, buf.byteLength - pos - 8);
+          const frames = Math.floor(len / (2 * channels));
+          const out = new Float32Array(frames);
+          for (let i = 0, o = pos + 8; i < frames; i++, o += 2 * channels) out[i] = v.getInt16(o, true) / 32768;
+          return out;
+        }
+        pos += 8 + size + (size & 1);
+      }
+      return null;
+    }
+
+    function computePeaks(data, n) {
+      const size = Math.floor(data.length / n) || 1;
+      const peaks = new Float32Array(n);
+      let max = 0;
+      for (let i = 0; i < n; i++) {
+        let p = 0;
+        for (let j = i * size, end = Math.min(j + size, data.length); j < end; j += 4) {
+          const a = Math.abs(data[j]);
+          if (a > p) p = a;
+        }
+        peaks[i] = p;
+        if (p > max) max = p;
+      }
+      if (max > 0) for (let i = 0; i < n; i++) peaks[i] /= max;
+      return peaks;
+    }
+
+    function drawWave() {
+      const dpr = window.devicePixelRatio || 1;
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      if (!w) return;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      const g = canvas.getContext('2d');
+      g.scale(dpr, dpr);
+      g.clearRect(0, 0, w, h);
+
+      const progress = audio.duration ? audio.currentTime / audio.duration : 0;
+      const played = cssVar('--ink'), rest = cssVar('--wave'), accent = cssVar('--accent');
+      const step = 3, bars = Math.floor(w / step);
+
+      if (!state.peaks) {
+        g.fillStyle = rest;
+        g.fillRect(0, h / 2 - 0.5, w, 1);
+        g.fillStyle = played;
+        g.fillRect(0, h / 2 - 0.5, w * progress, 1);
+      } else {
+        for (let i = 0; i < bars; i++) {
+          const p = state.peaks[Math.floor(i / bars * state.peaks.length)];
+          const bh = Math.max(1.5, p * (h - 4));
+          g.fillStyle = i / bars < progress ? played : rest;
+          g.fillRect(i * step, (h - bh) / 2, 2, bh);
+        }
+      }
+      if (state.current && audio.duration) {
+        g.fillStyle = accent;
+        g.fillRect(Math.min(w - 1.5, w * progress), 0, 1.5, h);
+      }
+    }
+
+    function togglePlay() {
+      if (!state.current) return;
+      audio.paused ? audio.play().catch(() => {}) : audio.pause();
+    }
+
+    function syncPlayIcon() {
+      const playing = !audio.paused;
+      $('iconPlay').style.display = playing ? 'none' : '';
+      $('iconPause').style.display = playing ? '' : 'none';
+      $('btnPlay').setAttribute('aria-label', playing ? '暂停' : '播放');
+    }
+
+    // ---------- 生成 ----------
+    function showError(msg) {
+      const el = $('errorBox');
+      el.textContent = msg;
+      el.hidden = !msg;
+    }
+
+    let busyTimer;
+    function setBusy(on) {
+      state.busy = on;
+      const btn = $('btnGenerate');
+      btn.disabled = on;
+      btn.classList.toggle('busy', on);
+      clearInterval(busyTimer);
+      if (on) {
+        const t0 = Date.now();
+        $('generateLabel').textContent = '录制中';
+        $('generateKbd').textContent = '0.0s';
+        busyTimer = setInterval(() => {
+          $('generateKbd').textContent = ((Date.now() - t0) / 1000).toFixed(1) + 's';
+        }, 100);
+      } else {
+        $('generateLabel').textContent = '生成语音';
+        $('generateKbd').textContent = '⌘ ↵';
+      }
+    }
+
+    async function generate() {
+      if (state.busy) return;
+      const text = textInput.value.trim();
+      if (!text) { textInput.focus(); showError('稿件是空的。'); return; }
+      if (!state.hasEnvKey && !state.userKey) { openSettings(); return; }
+
+      showError('');
+      setBusy(true);
+      try {
+        const res = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text,
+            voice: state.voice,
+            model: state.model,
+            style_prompt: $('stylePrompt').value.trim(),
+            api_key: state.userKey || undefined
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `请求失败 (${res.status})`);
+        await fetchHistory();
+        const item = state.history.find(h => h.filename === data.data.filename) || data.data;
+        loadTake(item);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    // ---------- 主题 ----------
+    function applyTheme(theme) {
+      if (theme) document.documentElement.dataset.theme = theme;
+      else delete document.documentElement.dataset.theme;
+      storage.set('THEME', theme);
+      $('btnTheme').textContent = '主题 · ' + THEMES.find(t => t[0] === theme)[1];
+      drawWave();
+    }
+
+    // ---------- 事件 ----------
+    function bind() {
+      textInput.addEventListener('input', syncEditor);
+      window.addEventListener('resize', () => { syncEditor(); drawWave(); });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', drawWave);
+      $('btnTheme').addEventListener('click', () => {
+        const cur = document.documentElement.dataset.theme || '';
+        applyTheme(THEMES[(THEMES.findIndex(t => t[0] === cur) + 1) % THEMES.length][0]);
+      });
+
+      document.querySelectorAll('.tag-btn').forEach(b => b.addEventListener('click', () => insertAtCursor(b.dataset.tag)));
+      $('btnClearText').addEventListener('click', () => { textInput.value = ''; syncEditor(); textInput.focus(); });
+
+      $('genderFilter').addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        state.filter = b.dataset.filter;
+        $('genderFilter').querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+        renderVoices();
+      });
+      $('voiceList').addEventListener('click', e => {
+        const b = e.target.closest('.voice');
+        if (!b) return;
+        state.voice = b.dataset.id;
+        renderVoices();
+      });
+      $('modelList').addEventListener('click', e => {
+        const b = e.target.closest('.model');
+        if (!b) return;
+        state.model = b.dataset.id;
+        renderModels();
+      });
+      document.querySelectorAll('[data-style]').forEach(b => b.addEventListener('click', () => {
+        $('stylePrompt').value = b.dataset.style;
+      }));
+
+      $('btnGenerate').addEventListener('click', generate);
+
+      $('takeList').addEventListener('click', e => {
+        const act = e.target.closest('[data-act="play"]');
+        if (!act) return;
+        const item = state.history[+act.closest('.take').dataset.i];
+        if (state.current && item.filename === state.current.filename) togglePlay();
+        else loadTake(item);
+      });
+      $('btnClearHistory').addEventListener('click', async () => {
+        if (!state.history.length || !confirm('清空全部录音记录？音频文件会保留在 output 目录。')) return;
+        await fetch('/api/history', { method: 'DELETE' });
+        await fetchHistory();
+        toast('记录已清空');
+      });
+
+      $('btnPlay').addEventListener('click', togglePlay);
+      ['play', 'pause', 'ended'].forEach(ev => audio.addEventListener(ev, syncPlayIcon));
+      audio.addEventListener('timeupdate', () => { $('timeCur').textContent = fmtTime(audio.currentTime); drawWave(); });
+      audio.addEventListener('loadedmetadata', () => { $('timeDur').textContent = fmtTime(audio.duration); drawWave(); });
+      canvas.addEventListener('click', e => {
+        if (!audio.duration) return;
+        const r = canvas.getBoundingClientRect();
+        audio.currentTime = (e.clientX - r.left) / r.width * audio.duration;
+      });
+      $('btnSpeed').addEventListener('click', () => {
+        state.speedIdx = (state.speedIdx + 1) % SPEEDS.length;
+        const s = SPEEDS[state.speedIdx];
+        audio.playbackRate = s;
+        $('btnSpeed').textContent = s.toFixed(s % 1 ? 2 : 1).replace(/0$/, '') + '×';
+      });
+      $('btnCopy').addEventListener('click', () => {
+        if (!state.current) return;
+        navigator.clipboard.writeText(state.current.text).then(() => toast('已复制文本'));
+      });
+
+      $('keyStatus').addEventListener('click', openSettings);
+      $('btnCancelKey').addEventListener('click', () => $('settings').close('cancel'));
+      $('settings').addEventListener('close', () => {
+        if ($('settings').returnValue !== 'save') return;
+        state.userKey = $('apiKeyInput').value.trim();
+        storage.set('GEMINI_API_KEY', state.userKey);
+        renderKeyStatus();
+        toast(state.userKey ? 'Key 已保存' : 'Key 已清除');
+      });
+
+      window.addEventListener('keydown', e => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); generate(); return; }
+        const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName) || $('settings').open;
+        if (e.code === 'Space' && !typing) { e.preventDefault(); togglePlay(); }
+      });
+    }
+
+    bind();
+    applyTheme(document.documentElement.dataset.theme || '');
+    syncEditor();
+    drawWave();
+    fetchConfig();
+    fetchHistory();
+  </script>
+</body>
+</html>
