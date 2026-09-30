@@ -12,7 +12,7 @@
 [![LINUX DO](https://img.shields.io/badge/LINUX%20DO-Community-E9711C?style=for-the-badge&logo=linux&logoColor=white)](https://linux.do)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](./LICENSE)
 
-[English](./README.md) · [简体中文](./README_zh.md) · [LINUX DO Community](https://linux.do) · [Contributing](./CONTRIBUTING.md) · [Changelog](./walkthrough.md)
+[English](./README.md) · [简体中文](./README_zh.md) · [LINUX DO Community](https://linux.do) · [Contributing](./CONTRIBUTING.md)
 
 <br/>
 
