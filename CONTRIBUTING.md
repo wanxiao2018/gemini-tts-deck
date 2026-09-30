@@ -63,7 +63,7 @@ cp .env.example .env
 - [ ] Multi-speaker dialogue script layout & visualization
 - [x] Docker & Docker-Compose deployment recipes
 - [ ] Extended emotion tags and custom style presets
-- [ ] Multilingual web UI (i18n)
+- [x] Multilingual web UI (i18n)
 
 ---
 

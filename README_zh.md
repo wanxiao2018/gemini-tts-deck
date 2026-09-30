@@ -8,6 +8,7 @@
 [![Package Manager](https://img.shields.io/badge/Managed%20by-uv-DE5FE9?style=for-the-badge)](https://github.com/astral-sh/uv)
 [![Framework](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Model](https://img.shields.io/badge/Model-Gemini%203.8%20Flash%20TTS-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![CI](https://github.com/wanxiao2018/gemini-tts-deck/actions/workflows/ci.yml/badge.svg)](https://github.com/wanxiao2018/gemini-tts-deck/actions/workflows/ci.yml)
 [![LINUX DO](https://img.shields.io/badge/LINUX%20DO-社区交流-E9711C?style=for-the-badge&logo=linux&logoColor=white)](https://linux.do)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](./LICENSE)
 

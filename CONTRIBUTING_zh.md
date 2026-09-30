@@ -63,4 +63,4 @@ cp .env.example .env
 - [ ] 多角色台词对话（Multi-speaker dialogue）排版与生成
 - [x] Docker / Docker-Compose 一键部署方案
 - [ ] 更多拟真微表情标签与提示词预设
-- [ ] 界面多语言国际化切换支持 (i18n)
+- [x] 界面多语言国际化切换支持 (i18n)

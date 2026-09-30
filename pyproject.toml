@@ -14,7 +14,16 @@ dependencies = [
     "httpx>=0.27.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/wanxiao2018/gemini-tts-deck"
 Repository = "https://github.com/wanxiao2018/gemini-tts-deck"
 Issues = "https://github.com/wanxiao2018/gemini-tts-deck/issues"
+
+[tool.setuptools]
+py-modules = ["app", "core", "cli", "run"]
+

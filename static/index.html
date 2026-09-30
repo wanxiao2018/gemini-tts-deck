@@ -365,7 +365,8 @@
       <span class="sub muted">DECK</span>
     </div>
     <div class="topbar-right">
-      <span class="mono muted hide-sm">⌘↵ 生成 · 空格 播放</span>
+      <span class="mono muted hide-sm" id="txtShortcuts">⌘↵ 生成 · 空格 播放</span>
+      <button id="btnLang" class="theme-btn mono" title="Switch Language">English</button>
       <button id="btnTheme" class="theme-btn mono" title="切换主题">主题 · 自动</button>
       <button id="keyStatus" class="key-status mono" data-state="loading">
         <span class="dot"></span><span id="keyStatusText">检查密钥</span>
@@ -377,19 +378,19 @@
     <!-- 稿件 -->
     <section class="card script">
       <div class="card-head">
-        <h2><span class="num">01</span>稿件</h2>
-        <span class="mono muted"><span id="charCount">0</span> 字 · 约 <span id="estDuration">0</span> 秒</span>
+        <h2><span class="num">01</span><span id="txtScript">稿件</span></h2>
+        <span class="mono muted"><span id="charCount">0</span> <span id="txtUnitChar">字</span> · <span id="txtUnitEst">约</span> <span id="estDuration">0</span> <span id="txtUnitSec">秒</span></span>
       </div>
 
       <div class="toolbar">
-        <span class="label mono muted">插入</span>
-        <button class="tag-btn" data-tag="<laugh>">笑 <code>&lt;laugh&gt;</code></button>
-        <button class="tag-btn" data-tag="<sigh>">叹气 <code>&lt;sigh&gt;</code></button>
-        <button class="tag-btn" data-tag="<whisper>">耳语 <code>&lt;whisper&gt;</code></button>
-        <button class="tag-btn" data-tag="<gasp>">吸气 <code>&lt;gasp&gt;</code></button>
-        <button class="tag-btn" data-tag="<pause>">停顿 <code>&lt;pause&gt;</code></button>
+        <span class="label mono muted" id="txtInsert">插入</span>
+        <button class="tag-btn" data-tag="<laugh>"><span data-tag-name="laugh">笑</span> <code>&lt;laugh&gt;</code></button>
+        <button class="tag-btn" data-tag="<sigh>"><span data-tag-name="sigh">叹气</span> <code>&lt;sigh&gt;</code></button>
+        <button class="tag-btn" data-tag="<whisper>"><span data-tag-name="whisper">耳语</span> <code>&lt;whisper&gt;</code></button>
+        <button class="tag-btn" data-tag="<gasp>"><span data-tag-name="gasp">吸气</span> <code>&lt;gasp&gt;</code></button>
+        <button class="tag-btn" data-tag="<pause>"><span data-tag-name="pause">停顿</span> <code>&lt;pause&gt;</code></button>
         <span class="spacer"></span>
-        <button id="btnClearText" class="text-btn danger">清空</button>
+        <button id="btnClearText" class="text-btn danger"><span id="txtClearScript">清空</span></button>
       </div>
 
       <div class="editor-wrap">
@@ -405,11 +406,11 @@
       <div class="card controls">
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">02</span>声音</h2>
+            <h2><span class="num">02</span><span id="txtVoice">声音</span></h2>
             <div class="filter" id="genderFilter">
-              <button data-filter="all" aria-pressed="true">全部</button>
-              <button data-filter="男声" aria-pressed="false">男声</button>
-              <button data-filter="女声" aria-pressed="false">女声</button>
+              <button data-filter="all" id="btnFilterAll" aria-pressed="true">全部</button>
+              <button data-filter="男声" id="btnFilterMale" aria-pressed="false">男声</button>
+              <button data-filter="女声" id="btnFilterFemale" aria-pressed="false">女声</button>
             </div>
           </div>
           <ul class="voice-list" id="voiceList" role="radiogroup" aria-label="音色"></ul>
@@ -417,21 +418,21 @@
 
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">03</span>语气</h2>
-            <span class="mono muted">可选</span>
+            <h2><span class="num">03</span><span id="txtDelivery">语气</span></h2>
+            <span class="mono muted" id="txtOptional">可选</span>
           </div>
           <input id="stylePrompt" class="field" type="text" placeholder="比如：像老朋友聊天一样轻松">
           <div class="chips">
-            <button data-style="生动活泼，富有感染力">活泼</button>
-            <button data-style="成熟稳重，严肃的新闻播音范">新闻播报</button>
-            <button data-style="温柔舒缓的治愈语调，如在耳边低语">温柔</button>
-            <button data-style="充满戏剧张力与悬疑感">悬疑</button>
+            <button data-style="生动活泼，富有感染力" id="chipLively">活泼</button>
+            <button data-style="成熟稳重，严肃的新闻播音范" id="chipNews">新闻播报</button>
+            <button data-style="温柔舒缓的治愈语调，如在耳边低语" id="chipGentle">温柔</button>
+            <button data-style="充满戏剧张力与悬疑感" id="chipSuspense">悬疑</button>
           </div>
         </div>
 
         <div class="rail-section">
           <div class="card-head">
-            <h2><span class="num">04</span>模型</h2>
+            <h2><span class="num">04</span><span id="txtModel">模型</span></h2>
           </div>
           <div class="models" id="modelList" role="radiogroup" aria-label="模型"></div>
         </div>
@@ -450,8 +451,8 @@
   <section class="takes">
     <div class="card">
       <div class="card-head">
-        <h2><span class="num">05</span>录音记录 <span class="mono muted" id="takeCount"></span></h2>
-        <button id="btnClearHistory" class="text-btn danger">清空记录</button>
+        <h2><span class="num">05</span><span id="txtTakes">录音记录</span> <span class="mono muted" id="takeCount"></span></h2>
+        <button id="btnClearHistory" class="text-btn danger"><span id="txtClearHistory">清空记录</span></button>
       </div>
       <ol class="take-list" id="takeList"></ol>
     </div>
@@ -475,7 +476,7 @@
       </div>
       <div class="tools">
         <button id="btnSpeed" class="speed" title="播放速度">1.0×</button>
-        <button id="btnCopy" class="text-btn">复制文本</button>
+        <button id="btnCopy" class="text-btn"><span id="txtCopy">复制文本</span></button>
         <a id="dlWav" href="#" download aria-disabled="true">WAV</a>
         <a id="dlMp3" href="#" download aria-disabled="true">MP3</a>
       </div>
@@ -485,8 +486,8 @@
 
   <dialog id="settings">
     <form method="dialog">
-      <h3>Gemini API Key</h3>
-      <p>服务端配置了环境变量 <code>GEMINI_API_KEY</code> 时会优先使用它。在这里填写的 Key 只保存在当前浏览器，随请求发给本地服务。</p>
+      <h3 id="txtKeyTitle">Gemini API Key</h3>
+      <p id="txtKeyDesc">服务端配置了环境变量 <code>GEMINI_API_KEY</code> 时会优先使用它。在这里填写的 Key 只保存在当前浏览器，随请求发给本地服务。</p>
       <label for="apiKeyInput">API Key</label>
       <input id="apiKeyInput" class="field" type="password" placeholder="AIzaSy…" autocomplete="off">
       <div class="dialog-actions">
@@ -502,12 +503,102 @@
     const SPEEDS = [1.0, 1.25, 1.5, 0.8];
     const THEMES = [['', '自动'], ['light', '亮色'], ['dark', '暗色']];
 
+    const I18N = {
+      zh: {
+        shortcuts: '⌘↵ 生成 · 空格 播放',
+        langBtn: 'English',
+        themePrefix: '主题 · ',
+        themes: { '': '自动', 'light': '亮色', 'dark': '暗色' },
+        keyEnv: 'KEY · 环境变量',
+        keyUser: last4 => `KEY · 本地 ••${last4}`,
+        keyNone: '未设置 KEY',
+        script: '稿件',
+        unitChar: '字',
+        unitEst: '约',
+        unitSec: '秒',
+        insert: '插入',
+        tags: { laugh: '笑', sigh: '叹气', whisper: '耳语', gasp: '吸气', pause: '停顿' },
+        clear: '清空',
+        placeholder: '把要读的文字写在这里。\n\n需要笑、叹气或停顿的地方，从上面插入标记。',
+        voice: '声音',
+        filters: { all: '全部', male: '男声', female: '女声' },
+        delivery: '语气',
+        optional: '可选',
+        stylePlaceholder: '比如：像老朋友聊天一样轻松',
+        chips: { lively: '活泼', news: '新闻播报', gentle: '温柔', suspense: '悬疑' },
+        model: '模型',
+        generate: '生成语音',
+        recording: '录制中',
+        emptyScript: '稿件是空的。',
+        takes: '录音记录',
+        clearTakes: '清空记录',
+        noTakes: '还没有录音。生成的每一条都会留在这里，可以重听和下载。',
+        nowVoiceEmpty: '尚未载入',
+        nowTextEmpty: '生成或从记录中选一条',
+        play: '播放',
+        copy: '复制文本',
+        copied: '已复制文本',
+        confirmClearHistory: '清空全部录音记录？音频文件会保留在 output 目录。',
+        clearedHistory: '记录已清空',
+        keySaved: 'Key 已保存',
+        keyCleared: 'Key 已清除',
+        keyTitle: 'Gemini API Key',
+        keyDesc: '服务端配置了环境变量 GEMINI_API_KEY 时会优先使用它。在这里填写的 Key 只保存在当前浏览器，随请求发给本地服务。',
+        cancel: '取消',
+        save: '保存'
+      },
+      en: {
+        shortcuts: '⌘↵ Gen · Space Play',
+        langBtn: '中文',
+        themePrefix: 'Theme: ',
+        themes: { '': 'Auto', 'light': 'Light', 'dark': 'Dark' },
+        keyEnv: 'KEY · Server Env',
+        keyUser: last4 => `KEY · Local ••${last4}`,
+        keyNone: 'Set API Key',
+        script: 'Script',
+        unitChar: 'chars',
+        unitEst: '~',
+        unitSec: 's',
+        insert: 'Insert',
+        tags: { laugh: 'Laugh', sigh: 'Sigh', whisper: 'Whisper', gasp: 'Gasp', pause: 'Pause' },
+        clear: 'Clear',
+        placeholder: 'Type or paste your script here.\n\nInsert emotion tags (<laugh>, <sigh>, <pause>) above for hyper-realistic acting.',
+        voice: 'Voice',
+        filters: { all: 'All', male: 'Male', female: 'Female' },
+        delivery: 'Delivery',
+        optional: 'Optional',
+        stylePlaceholder: 'e.g., Casual tone like talking to an old friend',
+        chips: { lively: 'Lively', news: 'News', gentle: 'Gentle', suspense: 'Suspense' },
+        model: 'Model',
+        generate: 'Generate Voice',
+        recording: 'Recording',
+        emptyScript: 'Script is empty.',
+        takes: 'Takes History',
+        clearTakes: 'Clear History',
+        noTakes: 'No takes yet. Every recording will be stored here for playback and download.',
+        nowVoiceEmpty: 'No audio loaded',
+        nowTextEmpty: 'Generate audio or pick a take below',
+        play: 'Play',
+        copy: 'Copy Text',
+        copied: 'Text copied to clipboard',
+        confirmClearHistory: 'Clear all take history? Audio files will remain in output directory.',
+        clearedHistory: 'History cleared',
+        keySaved: 'API Key saved',
+        keyCleared: 'API Key cleared',
+        keyTitle: 'Gemini API Key',
+        keyDesc: 'If GEMINI_API_KEY is configured on the server, it is used by default. Keys entered here are stored strictly in your browser.',
+        cancel: 'Cancel',
+        save: 'Save'
+      }
+    };
+
     const storage = {
       get(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
       set(k, v) { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch {} }
     };
 
     const state = {
+      lang: storage.get('LANG') || (navigator.language && navigator.language.startsWith('zh') ? 'zh' : 'en'),
       voices: [],
       models: [],
       voice: 'Puck',
@@ -574,9 +665,10 @@
     // ---------- 密钥 ----------
     function renderKeyStatus() {
       const el = $('keyStatus');
-      if (state.hasEnvKey) { el.dataset.state = 'env'; $('keyStatusText').textContent = 'KEY · 环境变量'; }
-      else if (state.userKey) { el.dataset.state = 'user'; $('keyStatusText').textContent = 'KEY · 本地 ••' + state.userKey.slice(-4); }
-      else { el.dataset.state = 'none'; $('keyStatusText').textContent = '未设置 KEY'; }
+      const t = I18N[state.lang] || I18N.zh;
+      if (state.hasEnvKey) { el.dataset.state = 'env'; $('keyStatusText').textContent = t.keyEnv; }
+      else if (state.userKey) { el.dataset.state = 'user'; $('keyStatusText').textContent = t.keyUser(state.userKey.slice(-4)); }
+      else { el.dataset.state = 'none'; $('keyStatusText').textContent = t.keyNone; }
     }
 
     function openSettings() {
@@ -590,17 +682,22 @@
     function renderVoices() {
       const list = $('voiceList');
       const voices = state.voices.filter(v => state.filter === 'all' || v.gender === state.filter);
-      list.innerHTML = voices.map(v => `
+      const isZh = state.lang === 'zh';
+      list.innerHTML = voices.map(v => {
+        const isMale = v.gender === '男声';
+        const mark = v.id === state.voice ? '●' : (isZh ? (isMale ? '男' : '女') : (isMale ? 'M' : 'F'));
+        return `
         <li>
           <button class="voice" role="radio" aria-checked="${v.id === state.voice}" data-id="${escapeHtml(v.id)}">
-            <span class="mark">${v.id === state.voice ? '●' : (v.gender === '女声' ? '女' : '男')}</span>
+            <span class="mark">${mark}</span>
             <span>
               <span class="name">${escapeHtml(v.name)}</span>
               <span class="desc">${escapeHtml(v.description)}</span>
             </span>
             <span class="tag">${escapeHtml(v.tags[0] || '')}</span>
           </button>
-        </li>`).join('');
+        </li>`;
+      }).join('');
     }
 
     function renderModels() {
@@ -649,9 +746,10 @@
 
     function renderHistory() {
       const list = state.history;
+      const t = I18N[state.lang] || I18N.zh;
       $('takeCount').textContent = list.length ? `(${list.length})` : '';
       if (!list.length) {
-        $('takeList').innerHTML = `<li class="empty">还没有录音。生成的每一条都会留在这里，可以重听和下载。</li>`;
+        $('takeList').innerHTML = `<li class="empty">${t.noTakes}</li>`;
         return;
       }
       $('takeList').innerHTML = list.map((item, i) => {
@@ -665,7 +763,7 @@
             <span class="who">${escapeHtml(item.voice)}</span>
             <button class="what" data-act="play" title="${escapeHtml(item.text)}">${escapeHtml(item.text)}</button>
             <span class="actions">
-              <button class="play" data-act="play">播放</button>
+              <button class="play" data-act="play">${t.play}</button>
               <a href="${escapeHtml(item.url)}" download="${escapeHtml(item.filename)}">WAV</a>
               <a href="${escapeHtml(mp3.url)}" download="${escapeHtml(mp3.filename)}">MP3</a>
             </span>
@@ -805,23 +903,25 @@
       btn.disabled = on;
       btn.classList.toggle('busy', on);
       clearInterval(busyTimer);
+      const t = I18N[state.lang] || I18N.zh;
       if (on) {
         const t0 = Date.now();
-        $('generateLabel').textContent = '录制中';
+        $('generateLabel').textContent = t.recording;
         $('generateKbd').textContent = '0.0s';
         busyTimer = setInterval(() => {
           $('generateKbd').textContent = ((Date.now() - t0) / 1000).toFixed(1) + 's';
         }, 100);
       } else {
-        $('generateLabel').textContent = '生成语音';
+        $('generateLabel').textContent = t.generate;
         $('generateKbd').textContent = '⌘ ↵';
       }
     }
 
     async function generate() {
       if (state.busy) return;
+      const t = I18N[state.lang] || I18N.zh;
       const text = textInput.value.trim();
-      if (!text) { textInput.focus(); showError('稿件是空的。'); return; }
+      if (!text) { textInput.focus(); showError(t.emptyScript); return; }
       if (!state.hasEnvKey && !state.userKey) { openSettings(); return; }
 
       showError('');
@@ -850,13 +950,71 @@
       }
     }
 
-    // ---------- 主题 ----------
+    // ---------- 主题与语言 ----------
     function applyTheme(theme) {
       if (theme) document.documentElement.dataset.theme = theme;
       else delete document.documentElement.dataset.theme;
       storage.set('THEME', theme);
-      $('btnTheme').textContent = '主题 · ' + THEMES.find(t => t[0] === theme)[1];
+      const t = I18N[state.lang] || I18N.zh;
+      const themeLabel = t.themes[theme] || t.themes[''];
+      $('btnTheme').textContent = t.themePrefix + themeLabel;
       drawWave();
+    }
+
+    function applyLanguage(lang) {
+      state.lang = lang;
+      storage.set('LANG', lang);
+      document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+      const t = I18N[lang] || I18N.zh;
+
+      $('btnLang').textContent = t.langBtn;
+      $('txtShortcuts').textContent = t.shortcuts;
+      $('txtScript').textContent = t.script;
+      $('txtUnitChar').textContent = t.unitChar;
+      $('txtUnitEst').textContent = t.unitEst;
+      $('txtUnitSec').textContent = t.unitSec;
+      $('txtInsert').textContent = t.insert;
+      document.querySelectorAll('[data-tag-name]').forEach(el => {
+        const k = el.dataset.tagName;
+        if (t.tags[k]) el.textContent = t.tags[k];
+      });
+      $('txtClearScript').textContent = t.clear;
+      textInput.placeholder = t.placeholder;
+
+      $('txtVoice').textContent = t.voice;
+      $('btnFilterAll').textContent = t.filters.all;
+      $('btnFilterMale').textContent = t.filters.male;
+      $('btnFilterFemale').textContent = t.filters.female;
+
+      $('txtDelivery').textContent = t.delivery;
+      $('txtOptional').textContent = t.optional;
+      $('stylePrompt').placeholder = t.stylePlaceholder;
+      $('chipLively').textContent = t.chips.lively;
+      $('chipNews').textContent = t.chips.news;
+      $('chipGentle').textContent = t.chips.gentle;
+      $('chipSuspense').textContent = t.chips.suspense;
+
+      $('txtModel').textContent = t.model;
+      if (!state.busy) $('generateLabel').textContent = t.generate;
+
+      $('txtTakes').textContent = t.takes;
+      $('txtClearHistory').textContent = t.clearTakes;
+
+      if (!state.current) {
+        $('nowVoice').textContent = t.nowVoiceEmpty;
+        $('nowText').textContent = t.nowTextEmpty;
+      }
+      $('txtCopy').textContent = t.copy;
+
+      $('txtKeyTitle').textContent = t.keyTitle;
+      $('txtKeyDesc').textContent = t.keyDesc;
+      $('btnCancelKey').textContent = t.cancel;
+      $('btnSaveKey').textContent = t.save;
+
+      applyTheme(document.documentElement.dataset.theme || '');
+      renderKeyStatus();
+      renderVoices();
+      renderHistory();
     }
 
     // ---------- 事件 ----------
@@ -864,6 +1022,11 @@
       textInput.addEventListener('input', syncEditor);
       window.addEventListener('resize', () => { syncEditor(); drawWave(); });
       matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', drawWave);
+      
+      $('btnLang').addEventListener('click', () => {
+        applyLanguage(state.lang === 'zh' ? 'en' : 'zh');
+      });
+
       $('btnTheme').addEventListener('click', () => {
         const cur = document.documentElement.dataset.theme || '';
         applyTheme(THEMES[(THEMES.findIndex(t => t[0] === cur) + 1) % THEMES.length][0]);
@@ -905,10 +1068,11 @@
         else loadTake(item);
       });
       $('btnClearHistory').addEventListener('click', async () => {
-        if (!state.history.length || !confirm('清空全部录音记录？音频文件会保留在 output 目录。')) return;
+        const t = I18N[state.lang] || I18N.zh;
+        if (!state.history.length || !confirm(t.confirmClearHistory)) return;
         await fetch('/api/history', { method: 'DELETE' });
         await fetchHistory();
-        toast('记录已清空');
+        toast(t.clearedHistory);
       });
 
       $('btnPlay').addEventListener('click', togglePlay);
@@ -928,7 +1092,8 @@
       });
       $('btnCopy').addEventListener('click', () => {
         if (!state.current) return;
-        navigator.clipboard.writeText(state.current.text).then(() => toast('已复制文本'));
+        const t = I18N[state.lang] || I18N.zh;
+        navigator.clipboard.writeText(state.current.text).then(() => toast(t.copied));
       });
 
       $('keyStatus').addEventListener('click', openSettings);
@@ -938,7 +1103,8 @@
         state.userKey = $('apiKeyInput').value.trim();
         storage.set('GEMINI_API_KEY', state.userKey);
         renderKeyStatus();
-        toast(state.userKey ? 'Key 已保存' : 'Key 已清除');
+        const t = I18N[state.lang] || I18N.zh;
+        toast(state.userKey ? t.keySaved : t.keyCleared);
       });
 
       window.addEventListener('keydown', e => {
@@ -949,7 +1115,7 @@
     }
 
     bind();
-    applyTheme(document.documentElement.dataset.theme || '');
+    applyLanguage(state.lang);
     syncEditor();
     drawWave();
     fetchConfig();
