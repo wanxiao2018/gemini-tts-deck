@@ -148,6 +148,17 @@ uv run python run.py
 > The launcher will automatically start Uvicorn and open your default browser at `http://127.0.0.1:8000`.
 > Shortcut hint: Type your script and hit **`⌘ + Enter`** (Mac) or **`Ctrl + Enter`** to synthesize instantly!
 
+### 5. Docker Deployment (Self-Hosted / NAS)
+Pre-packaged with `ffmpeg` and all dependencies, ideal for home servers and NAS (Synology, Unraid, TrueNAS, etc.):
+```bash
+# Start container in background
+docker compose up -d
+
+# View service logs
+docker compose logs -f
+```
+Open `http://localhost:8000` to start recording. Audio files are automatically persisted in `./output`.
+
 ---
 
 ## 💻 CLI Terminal Usage
@@ -185,6 +196,8 @@ gemini_tts_app/
 ├── README.md            # English homepage (Default GitHub document)
 ├── README_zh.md         # Full Chinese documentation
 ├── pyproject.toml       # Python project metadata and packaging configuration
+├── Dockerfile           # Multi-stage container recipe with pre-installed FFmpeg
+├── docker-compose.yml   # One-click Docker service & persistent volume configuration
 ├── core.py              # Core synthesis engine, .env loader, FFmpeg transcoding & history
 ├── app.py               # FastAPI backend with static routes & audio endpoints
 ├── cli.py               # Standalone terminal CLI tool (cross-platform audio playback)

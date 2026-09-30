@@ -1,0 +1,17 @@
+services:
+  gemini-tts-deck:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: wanxiao2018/gemini-tts-deck:latest
+    container_name: gemini-tts-deck
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Optional: configure your API Key via environment variable or .env file.
+      # It can also be left blank and configured securely directly in the Web UI settings modal.
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    volumes:
+      # Persist audio files and session history on the host
+      - ./output:/app/output
