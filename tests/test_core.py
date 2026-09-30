@@ -34,8 +34,11 @@ def test_preset_voices_integrity():
         assert "id" in v and v["id"]
         assert "name" in v and v["name"]
         assert "gender" in v and v["gender"] in ("女声", "男声", "中性")
+        assert "gender_en" in v and v["gender_en"] in ("Male", "Female", "Neutral")
         assert "tags" in v and isinstance(v["tags"], list) and len(v["tags"]) > 0
+        assert "tags_en" in v and isinstance(v["tags_en"], list) and len(v["tags_en"]) > 0
         assert "description" in v and v["description"]
+        assert "description_en" in v and v["description_en"]
 
         # IDs must be strictly unique
         assert v["id"] not in ids
@@ -44,6 +47,17 @@ def test_preset_voices_integrity():
     # Core flagship voices must be present
     for core_voice in ["Puck", "Charon", "Aoede", "Kore", "Fenrir"]:
         assert core_voice in ids
+
+
+def test_models_integrity():
+    assert len(SUPPORTED_MODELS) >= 2
+    for m in SUPPORTED_MODELS:
+        assert "id" in m and m["id"]
+        assert "name" in m and m["name"]
+        assert "tag" in m and m["tag"]
+        assert "tag_en" in m and m["tag_en"]
+        assert "description" in m and m["description"]
+        assert "description_en" in m and m["description_en"]
 
 
 def test_convert_wav_to_mp3_cache():

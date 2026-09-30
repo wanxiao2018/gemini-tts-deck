@@ -82,7 +82,7 @@ def convert_wav_to_mp3(wav_path: Path) -> Path:
             stderr=subprocess.PIPE
         )
     except Exception as e:
-        raise RuntimeError(f"FFmpeg MP3 转码失败: {e}")
+        raise RuntimeError(f"FFmpeg MP3 transcoding failed: {e}")
 
     return mp3_path
 
@@ -92,57 +92,81 @@ PRESET_VOICES = [
         "id": "Puck",
         "name": "Puck",
         "gender": "男声",
+        "gender_en": "Male",
         "tags": ["活泼亲切", "清脆自然", "日常通用"],
-        "description": "声音清脆利落，富有表现力，适合播报、解说和日常互动。"
+        "tags_en": ["Lively & Relatable", "Crisp & Natural", "General Purpose"],
+        "description": "声音清脆利落，富有表现力，适合播报、解说和日常互动。",
+        "description_en": "Crisp and lively with expressive clarity. Great for commentary, vlogs, and daily dialogue."
     },
     {
         "id": "Aoede",
         "name": "Aoede",
         "gender": "女声",
+        "gender_en": "Female",
         "tags": ["温暖典雅", "富有感染力", "情感充沛"],
-        "description": "语调温柔有张力，适合散文诗歌、抒情独白与故事讲述。"
+        "tags_en": ["Warm & Elegant", "Deeply Expressive", "Emotional"],
+        "description": "语调温柔有张力，适合散文诗歌、抒情独白与故事讲述。",
+        "description_en": "Warm, elegant, and resonant. Perfect for prose, lyrical monologues, and storytelling."
     },
     {
         "id": "Charon",
         "name": "Charon",
         "gender": "男声",
+        "gender_en": "Male",
         "tags": ["低沉磁性", "成熟稳重", "纪录片风"],
-        "description": "厚重低沉的电影感嗓音，适合悬疑、史诗叙事与旁白。"
+        "tags_en": ["Deep & Magnetic", "Cinematic", "Gravelly"],
+        "description": "厚重低沉的电影感嗓音，适合悬疑、史诗叙事与旁白。",
+        "description_en": "Deep, magnetic, cinematic voice. Ideal for epic narratives, suspense, and documentaries."
     },
     {
         "id": "Kore",
         "name": "Kore",
         "gender": "女声",
+        "gender_en": "Female",
         "tags": ["柔和平静", "治愈舒缓", "睡前读物"],
-        "description": "轻柔放松的治愈嗓音，适合助眠故事、冥想引导与睡前朗读。"
+        "tags_en": ["Gentle & Soothing", "Healing", "Bedtime Stories"],
+        "description": "轻柔放松的治愈嗓音，适合助眠故事、冥想引导与睡前朗读。",
+        "description_en": "Soft, relaxing, and therapeutic. Excellent for meditation guidance and bedtime reading."
     },
     {
         "id": "Fenrir",
         "name": "Fenrir",
         "gender": "男声",
+        "gender_en": "Male",
         "tags": ["威严有力", "坚定深沉", "新闻播报"],
-        "description": "铿锵有力、清晰果断，适合权威发布、正剧演播与商务解说。"
+        "tags_en": ["Authoritative", "Commanding & Deep", "News Broadcast"],
+        "description": "铿锵有力、清晰果断，适合权威发布、正剧演播与商务解说。",
+        "description_en": "Authoritative, decisive, and commanding. Ideal for formal news, briefings, and presentations."
     },
     {
         "id": "Veda",
         "name": "Veda",
         "gender": "女声",
+        "gender_en": "Female",
         "tags": ["知性从容", "专业清晰", "知识科普"],
-        "description": "条理清晰、发音标准的知性声音，适合学术讲座与科普教程。"
+        "tags_en": ["Intellectual", "Articulate & Clear", "Educational"],
+        "description": "条理清晰、发音标准的知性声音，适合学术讲座与科普教程。",
+        "description_en": "Clear, articulate, and intellectual. Perfect for lectures, explainers, and audio courses."
     },
     {
         "id": "Zephyr",
         "name": "Zephyr",
         "gender": "男声",
+        "gender_en": "Male",
         "tags": ["轻快阳光", "朝气蓬勃", "年轻活力"],
-        "description": "充满活力的青年音色，适合短视频解说、动漫与游戏角色。"
+        "tags_en": ["Bright & Sunny", "Youthful", "Energetic"],
+        "description": "充满活力的青年音色，适合短视频解说、动漫与游戏角色。",
+        "description_en": "Upbeat, youthful, and energetic. Tailored for gaming, animation, and short video clips."
     },
     {
         "id": "Leda",
         "name": "Leda",
         "gender": "女声",
+        "gender_en": "Female",
         "tags": ["优雅端庄", "娓娓道来", "有声书"],
-        "description": "优雅沉静，节奏张弛有度，非常适合长篇小说与人物传记。"
+        "tags_en": ["Graceful", "Narrative Cadence", "Audiobooks"],
+        "description": "优雅沉静，节奏张弛有度，非常适合长篇小说与人物传记。",
+        "description_en": "Composed, graceful, with measured pacing. Built for literary novels and biographies."
     }
 ]
 
@@ -151,13 +175,17 @@ SUPPORTED_MODELS = [
         "id": "gemini-3.8-flash-tts",
         "name": "Gemini 3.8 Flash TTS",
         "tag": "Studio 高保真（推荐）",
-        "description": "最高声学质量与细腻演技，支持长文本与微表情语气"
+        "tag_en": "Studio Hi-Fi (Recommended)",
+        "description": "最高声学质量与细腻演技，支持长文本与微表情语气",
+        "description_en": "Peak acoustic fidelity & subtle acting. Supports micro-expression tags and style prompts."
     },
     {
         "id": "gemini-3.8-flash-lite-tts",
         "name": "Gemini 3.8 Flash-Lite TTS",
         "tag": "超低延迟 & 高效",
-        "description": "响应极快，高吞吐量，适合短句快速即时朗读"
+        "tag_en": "Ultra-Low Latency & Fast",
+        "description": "响应极快，高吞吐量，适合短句快速即时朗读",
+        "description_en": "Instant response with high throughput. Perfect for snappy short-form speech."
     }
 ]
 
@@ -169,7 +197,7 @@ class GeminiTTSClient:
     def get_api_key(self, override_key: Optional[str] = None) -> str:
         key = (override_key or "").strip() or self.api_key or os.environ.get("GEMINI_API_KEY", "").strip()
         if not key:
-            raise ValueError("未检测到 Gemini API Key。请在界面设置中输入或在环境变量中配置 GEMINI_API_KEY。")
+            raise ValueError("Missing Gemini API Key. Please enter it in the settings modal or set GEMINI_API_KEY environment variable.")
         return key
 
     def load_history(self) -> List[Dict[str, Any]]:
@@ -256,7 +284,7 @@ class GeminiTTSClient:
             resp = await client.post(endpoint, params=params, json=payload, headers=headers)
 
         if resp.status_code != 200:
-            err_msg = f"Gemini API 错误 (状态码 {resp.status_code})"
+            err_msg = f"Gemini API error (status {resp.status_code})"
             try:
                 err_data = resp.json()
                 if "error" in err_data and "message" in err_data["error"]:
@@ -272,7 +300,7 @@ class GeminiTTSClient:
             candidates = data.get("candidates", [])
             if not candidates:
                 feedback = data.get("promptFeedback", {})
-                raise RuntimeError(f"模型未返回音频候选内容: {feedback}")
+                raise RuntimeError(f"Model returned no audio candidates: {feedback}")
 
             parts = candidates[0].get("content", {}).get("parts", [])
             audio_base64 = None
@@ -285,11 +313,11 @@ class GeminiTTSClient:
                     break
 
             if not audio_base64:
-                raise RuntimeError("API 返回的内容中未找到 inlineData 音频流")
+                raise RuntimeError("No inlineData audio stream found in API response")
 
             audio_bytes = base64.b64decode(audio_base64)
         except Exception as e:
-            raise RuntimeError(f"解析音频响应失败: {str(e)}")
+            raise RuntimeError(f"Failed to parse audio response: {str(e)}")
 
         # 保存为文件（日期置前，不含 geminitts，去除微表情标签）
         timestamp_str = time.strftime("%Y%m%d_%H%M%S")

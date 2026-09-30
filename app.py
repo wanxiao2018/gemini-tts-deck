@@ -37,7 +37,7 @@ class TTSRequest(BaseModel):
 async def serve_index():
     index_file = STATIC_DIR / "index.html"
     if not index_file.exists():
-        raise HTTPException(status_code=404, detail="前端页面未找到")
+        raise HTTPException(status_code=404, detail="Frontend page not found")
     with open(index_file, "r", encoding="utf-8") as f:
         return f.read()
 
@@ -68,7 +68,7 @@ async def get_history():
 async def clear_history():
     """清空历史生成记录"""
     tts_client.clear_history()
-    return {"success": True, "message": "历史记录已清空"}
+    return {"success": True, "message": "History cleared"}
 
 
 @app.post("/api/tts")
@@ -100,12 +100,12 @@ async def get_audio_file(filename: str):
             try:
                 convert_wav_to_mp3(wav_path)
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"MP3 转码失败: {e}")
+                raise HTTPException(status_code=500, detail=f"MP3 transcoding failed: {e}")
         else:
-            raise HTTPException(status_code=404, detail="音频源文件不存在")
+            raise HTTPException(status_code=404, detail="Audio source file not found")
 
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="音频文件不存在")
+        raise HTTPException(status_code=404, detail="Audio file not found")
 
     media_type = "audio/mpeg" if safe_name.endswith(".mp3") else "audio/wav"
     return FileResponse(
